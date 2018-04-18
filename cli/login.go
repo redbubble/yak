@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/redbubble/yak/okta"
+	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/saml"
 )
 

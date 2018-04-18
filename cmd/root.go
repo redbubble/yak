@@ -41,6 +41,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initCache)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Display this help message and exit")
 	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List all available AWS roles and exit")
@@ -48,8 +49,21 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
+	rootCmd.PersistentFlags().Bool("no-cache", false, "do not use caching for this request")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
+	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
+}
+
+func initCache() {
+	dir, err := homedir.Dir()
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	viper.SetDefault("cache.file_location", path.Join(dir, ".yak", "cache"))
 }
 
 func initConfig() {
