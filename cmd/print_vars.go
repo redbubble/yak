@@ -11,7 +11,7 @@ import (
 )
 
 func printVarsCmd(cmd *cobra.Command, args []string) {
-	roleName := args[0]
+	roleName := cli.ResolveRole(args[0])
 
 	creds := cli.AssumeRoleFromCache(roleName)
 
