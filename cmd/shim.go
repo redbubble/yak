@@ -11,7 +11,7 @@ import (
 )
 
 func shimCmd(cmd *cobra.Command, args []string) {
-	roleName := args[0]
+	roleName := cli.ResolveRole(args[0])
 	command := args[1:]
 
 	creds := cli.AssumeRoleFromCache(roleName)

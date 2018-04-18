@@ -23,6 +23,14 @@ func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 	return &data
 }
 
+func ResolveRole(roleName string) string {
+	if viper.IsSet("alias." + roleName) {
+		return viper.GetString("alias." + roleName)
+	}
+
+	return roleName
+}
+
 func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
 	role, err := login.GetLoginRole(desiredRole)
 
