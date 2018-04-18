@@ -11,27 +11,33 @@ import (
 )
 
 func shimCmd(cmd *cobra.Command, args []string) {
-	desiredRole := args[0]
+	roleName := args[0]
 	command := args[1:]
 
-	loginData, err := cli.GetLoginData()
+	creds := cli.AssumeRoleFromCache(roleName)
 
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+	if creds == nil {
+		loginData, err := cli.GetLoginData()
+
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+
+		creds, err = cli.AssumeRole(loginData, roleName)
+
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+
+		cli.SaveCacheWithCreds(roleName, creds)
 	}
 
-	role, err := cli.AssumeRole(loginData, desiredRole)
-
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
-
-	err = cli.Exec(
+	err := cli.Exec(
 		command,
 		cli.EnrichedEnvironment(
-			aws.EnvironmentVariables(role.Credentials),
+			aws.EnvironmentVariables(creds.Credentials),
 		),
 	)
 
