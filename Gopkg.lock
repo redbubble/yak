@@ -92,6 +92,12 @@
   revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
 
 [[projects]]
+  name = "github.com/patrickmn/go-cache"
+  packages = ["."]
+  revision = "a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0"
+  version = "v2.1.0"
+
+[[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
@@ -182,6 +188,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "30af727f460667f3beff8aea97bf4dc1953cb9af014bce8c3852eb5dccd91420"
+  inputs-digest = "e57e28502a9a7d77d9df8137de94b262b359151a489a0748afab8b6c0883f6a1"
   solver-name = "gps-cdcl"
   solver-version = 1

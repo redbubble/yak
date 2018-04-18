@@ -22,6 +22,10 @@
   branch = "master"
   name = "golang.org/x/net"
 
+[[constraint]]
+  name = "github.com/patrickmn/go-cache"
+  version = "2.1.0"
+
 [prune]
   go-tests = true
   unused-packages = true
