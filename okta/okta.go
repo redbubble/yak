@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 
 	"golang.org/x/net/html"
@@ -125,7 +126,13 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 
 	samlUrl.RawQuery = query.Encode()
 
-	resp, _ := http.Get(samlUrl.String())
+	jar, _ := cookiejar.New(nil)
+
+	client := http.Client {
+		Jar: jar,
+	}
+
+ 	resp, _ := client.Get(samlUrl.String())
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
