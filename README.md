@@ -62,3 +62,8 @@ If you'd like to run the tests for a single package, you can run:
 ```
 go test <package-directory>
 ```
+
+## License
+
+`yak` is provided under an MIT license. See the [LICENSE](https://github.com/redbubble/yak/blob/master/LICENSE) file for
+details.
