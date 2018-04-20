@@ -14,9 +14,9 @@ To install yak, run `go get -u https://github.com/redbubble/yak`.
 yak <role> [<command>]
 ```
 
-and will run <command> as <role>.
+and will run `command` as `role`.
 
-More specifically, `yak` runs <command> in the same environment it was called from, with the credentials for `role`
+More specifically, `yak` runs `command` in the same environment it was called from, with the credentials for `role`
 injected as environment variables.
 
 When run without a command, `yak` prints those variables as `export` statements; this is intended to allow easy sourcing
