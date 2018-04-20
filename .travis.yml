@@ -1,0 +1,17 @@
+language: go
+go:
+  - 1.x
+install:
+  - go get github.com/redbubble/go-passe
+  - go get github.com/golang/dep/cmd/dep
+  - make vendor
+script:
+  - make test
+  - make build
+deploy:
+  provider: releases
+  file_glob: true
+  file: bin/*
+  skip_cleanup: true
+  #on:
+  #  branch: master
