@@ -74,7 +74,11 @@ func Authenticate(oktaHref string, userData UserData) (OktaAuthResponse, error) 
 		return OktaAuthResponse{}, errors.New("Could not authenticate (" + resp.Status + ")")
 	}
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return OktaAuthResponse{}, err
+	}
 
 	var authResponse OktaAuthResponse
 	json.Unmarshal(body, &authResponse)
@@ -98,7 +102,11 @@ func VerifyTotp(url string, totpRequestBody TotpRequest) (OktaAuthResponse, erro
 		return OktaAuthResponse{}, errors.New("MFA failed (" + resp.Status + ")")
 	}
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return OktaAuthResponse{}, err
+	}
 
 	var authResponse OktaAuthResponse
 	json.Unmarshal(body, &authResponse)
@@ -126,18 +134,36 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 
 	samlUrl.RawQuery = query.Encode()
 
-	jar, _ := cookiejar.New(nil)
+	jar, err := cookiejar.New(nil)
+
+	if err != nil {
+		return "", err
+	}
 
 	client := http.Client {
 		Jar: jar,
 	}
 
- 	resp, _ := client.Get(samlUrl.String())
+ 	resp, err := client.Get(samlUrl.String())
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	} else if resp.StatusCode >= 300 {
+		return "", errors.New("Could not get SAML payload" + resp.Status + ")")
+	}
 
-	data, _ := extractSamlPayload(body)
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	data, err := extractSamlPayload(body)
+
+	if err != nil {
+		return "", err
+	}
 
 	saml, err := base64.StdEncoding.DecodeString(data)
 
