@@ -4,7 +4,7 @@ A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kre
 
 ## Usage
 
-To install yak, run `go get -u https://github.com/redbubble/yak`.
+To install yak, run `go get -u github.com/redbubble/yak`.
 
 ### Running
 
