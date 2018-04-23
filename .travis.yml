@@ -12,11 +12,3 @@ install:
   - make vendor
 script:
   - make test
-  - make build
-deploy:
-  provider: releases
-  file_glob: true
-  file: bin/*
-  skip_cleanup: true
-  on:
-    tag: release-*

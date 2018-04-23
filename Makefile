@@ -18,6 +18,6 @@ fmt:
 install:
 	go install
 
-release:
+release: build
 	git tag -a "release-${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
