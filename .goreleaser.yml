@@ -1,0 +1,10 @@
+dist: ./bin
+builds:
+  - binary: yak
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+archive:
+  format: binary
