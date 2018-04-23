@@ -1,4 +1,4 @@
-VERSION ?= "1.0.0"
+VERSION ?= 1.0.0
 
 .PHONY: vendor test install
 
@@ -18,6 +18,7 @@ fmt:
 install:
 	go install
 
-release: build
-	git tag -a "release-${VERSION}" -m "Releasing version ${VERSION}"
+release:
+	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
+	goreleaser
