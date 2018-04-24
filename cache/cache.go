@@ -3,9 +3,9 @@ package cache
 import (
 	"bufio"
 	"encoding/gob"
+	"fmt"
 	"os"
 	"time"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/patrickmn/go-cache"
@@ -14,7 +14,7 @@ import (
 
 var cacheHandle *cache.Cache
 
-func Cache() *cache.Cache{
+func Cache() *cache.Cache {
 	if cacheHandle == nil {
 		roleExpiryDuration := time.Duration(viper.GetInt("aws.session_duration")) * time.Second
 		err := importCache(roleExpiryDuration)
@@ -51,8 +51,12 @@ func importCache(roleExpiryDuration time.Duration) error {
 	return nil
 }
 
-func Write(roleArn string, creds interface{}) {
-	Cache().SetDefault(roleArn, creds)
+func Write(key string, value interface{}, duration time.Duration) {
+	Cache().Set(key, value, duration)
+}
+
+func WriteDefault(key string, value interface{}) {
+	Cache().SetDefault(key, value)
 }
 
 func Check(roleArn string) interface{} {
@@ -84,4 +88,3 @@ func Export() error {
 
 	return writer.Flush()
 }
-

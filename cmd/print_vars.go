@@ -31,7 +31,7 @@ func printVarsCmd(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		cli.SaveCacheWithCreds(roleName, creds)
+		cli.CacheCredentials(roleName, creds)
 	}
 
 	for key, value := range aws.EnvironmentVariables(creds.Credentials) {
