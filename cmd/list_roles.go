@@ -10,15 +10,23 @@ import (
 )
 
 func listRolesCmd(cmd *cobra.Command, args []string) {
-	loginData, err := cli.GetLoginData()
+	roles, gotRoles := cli.GetRolesFromCache()
 
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+	if gotRoles {
+		loginData, err := cli.GetLoginData()
+
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+
+		cli.CacheLoginRoles(loginData.Roles)
+
+		roles = (loginData.Roles)
 	}
 
 	fmt.Println("\nAvailable Roles:")
-	for _, role := range loginData.Roles {
+	for _, role := range roles {
 		fmt.Printf("    %s\n", role.RoleArn)
 	}
 	fmt.Println()
