@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/redbubble/yak/cli"
 )
@@ -25,9 +26,32 @@ func listRolesCmd(cmd *cobra.Command, args []string) {
 		roles = (loginData.Roles)
 	}
 
-	fmt.Println("\nAvailable Roles:")
+	aliases, _ := getAliases()
+
+	for _, alias := range aliases {
+		fmt.Printf("    %s\n", alias)
+	}
+
 	for _, role := range roles {
 		fmt.Printf("    %s\n", role.RoleArn)
 	}
 	fmt.Println()
+}
+
+func getAliases() ([]string, error) {
+	var aliases map[string]string
+
+	err := viper.Sub("alias").Unmarshal(&aliases)
+
+	if err != nil {
+		return []string{}, err
+	}
+
+	keys := []string{}
+
+	for key, _ := range aliases {
+		keys = append(keys, key)
+	}
+
+	return keys, nil
 }
