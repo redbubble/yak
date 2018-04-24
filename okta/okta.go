@@ -140,11 +140,11 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 		return "", err
 	}
 
-	client := http.Client {
+	client := http.Client{
 		Jar: jar,
 	}
 
- 	resp, err := client.Get(samlUrl.String())
+	resp, err := client.Get(samlUrl.String())
 	defer resp.Body.Close()
 
 	if err != nil {
