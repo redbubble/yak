@@ -24,6 +24,7 @@ func shimCmd(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
+		cli.CacheLoginRoles(loginData.Roles)
 		creds, err = cli.AssumeRole(loginData, roleName)
 
 		if err != nil {

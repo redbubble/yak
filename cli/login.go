@@ -10,9 +10,33 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/okta"
 	"github.com/redbubble/yak/saml"
 )
+
+func GetRolesFromCache() ([]saml.LoginRole, bool) {
+	if viper.GetBool("cache.no_cache") {
+		return []saml.LoginRole{}, false
+	}
+
+	data, ok := cache.Check("aws:roles").([]string)
+
+	if !ok {
+		return []saml.LoginRole{}, false
+	}
+
+	roles := []saml.LoginRole{}
+	for _, datum := range data {
+		role, ok := saml.CreateLoginRole(datum)
+
+		if ok {
+			roles = append(roles, role)
+		}
+	}
+
+	return roles, true
+}
 
 func GetLoginData() (saml.LoginData, error) {
 	username := viper.GetString("okta.username")
@@ -60,6 +84,20 @@ func GetLoginData() (saml.LoginData, error) {
 	}
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
+}
+
+func CacheLoginRoles(roles []saml.LoginRole) {
+	if viper.GetBool("cache.no_cache") {
+		return
+	}
+
+	data := []string{}
+
+	for _, role := range roles {
+		data = append(data, saml.SerialiseLoginRole(role))
+	}
+
+	cache.WriteDefault("aws:roles", data)
 }
 
 func getPassword() (string, error) {

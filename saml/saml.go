@@ -53,19 +53,33 @@ func CreateLoginData(response samlResponse, payload string) LoginData {
 	for _, attribute := range response.Assertion.Attributes {
 		if attribute.Name == "https://aws.amazon.com/SAML/Attributes/Role" {
 			for _, value := range attribute.Values {
-				parts := strings.Split(value, ",")
+				role, ok := CreateLoginRole(value)
 
-				if len(parts) == 2 {
-					login.Roles = append(login.Roles, LoginRole{
-						RoleArn:      parts[1],
-						PrincipalArn: parts[0],
-					})
+				if ok {
+					login.Roles = append(login.Roles, role)
 				}
 			}
 		}
 	}
 
 	return login
+}
+
+func CreateLoginRole(roleData string) (LoginRole, bool) {
+	parts := strings.Split(roleData, ",")
+
+	if len(parts) == 2 {
+		return LoginRole{
+			RoleArn:      parts[1],
+			PrincipalArn: parts[0],
+		}, true
+	} else {
+		return LoginRole{}, false
+	}
+}
+
+func SerialiseLoginRole(role LoginRole) string {
+	return fmt.Sprintf("%s,%s", role.PrincipalArn, role.RoleArn)
 }
 
 func (login LoginData) GetLoginRole(roleArn string) (LoginRole, error) {
