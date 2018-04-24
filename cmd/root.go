@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/redbubble/yak/cache"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -35,6 +36,10 @@ var rootCmd = &cobra.Command{
 			return
 		} else {
 			shimCmd(cmd, args)
+		}
+
+		if !viper.GetBool("cache.no_cache") {
+			cache.Export()
 		}
 	},
 }

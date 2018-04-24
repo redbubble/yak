@@ -7,12 +7,10 @@ import (
 	"github.com/redbubble/yak/cache"
 )
 
-func SaveCacheWithCreds(roleName string, creds *sts.AssumeRoleWithSAMLOutput) error {
+func CacheCredentials(roleName string, creds *sts.AssumeRoleWithSAMLOutput) {
 	if viper.GetBool("cache.no_cache") {
-		return nil
+		return
 	}
 
-	cache.Write(roleName, creds)
-
-	return cache.Export()
+	cache.WriteDefault(roleName, creds)
 }

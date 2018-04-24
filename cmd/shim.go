@@ -31,7 +31,7 @@ func shimCmd(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		cli.SaveCacheWithCreds(roleName, creds)
+		cli.CacheCredentials(roleName, creds)
 	}
 
 	err := cli.Exec(
