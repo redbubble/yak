@@ -12,7 +12,7 @@ import (
 func listRolesCmd(cmd *cobra.Command, args []string) {
 	roles, gotRoles := cli.GetRolesFromCache()
 
-	if gotRoles {
+	if !gotRoles {
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
