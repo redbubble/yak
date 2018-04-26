@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"errors"
+
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/spf13/viper"
 
@@ -32,6 +34,10 @@ func ResolveRole(roleName string) string {
 }
 
 func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
+	if viper.GetBool("cache.cache_only") {
+		return nil, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+	}
+
 	role, err := login.GetLoginRole(desiredRole)
 
 	if err != nil {
