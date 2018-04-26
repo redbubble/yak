@@ -30,10 +30,8 @@ var rootCmd = &cobra.Command{
 
 		if viper.GetBool("list-roles") {
 			listRolesCmd(cmd, args)
-			return
 		} else if len(args) == 1 {
 			printVarsCmd(cmd, args)
-			return
 		} else {
 			shimCmd(cmd, args)
 		}
