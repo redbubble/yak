@@ -28,6 +28,12 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
+		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
+			cmd.Help()
+			return
+		}
+
 		if viper.GetBool("list-roles") {
 			listRolesCmd(cmd, args)
 			return
@@ -54,10 +60,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
-	rootCmd.PersistentFlags().Bool("no-cache", false, "Do not use caching for this request")
+	rootCmd.PersistentFlags().Bool("no-cache", false, "Do not use caching for this request. Mutually exclusive with --cache-only")
+	rootCmd.PersistentFlags().Bool("cache-only", false, "Only look at cached data; do not request anything from Okta. Mutually exclusive with --no-cache")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
+	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
 }
 
 func initCache() {

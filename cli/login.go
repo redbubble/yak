@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -39,6 +40,10 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 }
 
 func GetLoginData() (saml.LoginData, error) {
+	if viper.GetBool("cache.cache_only") {
+		return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+	}
+
 	username := viper.GetString("okta.username")
 
 	if username == "" {
