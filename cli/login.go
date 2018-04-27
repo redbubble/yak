@@ -40,19 +40,24 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
-func GetLoginData() (saml.LoginData, error) {
-	var samlPayload string
+func samlResponseCacheKey() {
+	return fmt.Sprintf("okta:samlResponse:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
+}
 
+func getSamlFromCache() (string, bool) {
 	if !viper.GetBool("cache.no_cache") {
-		data, ok := cache.Check("okta:samlResponse").(string)
+		data, ok := cache.Check(samlResponseCacheKey()).(string)
 
-		if ok {
-			fmt.Printf("Cache hit!")
-			samlPayload = data
-		}
+		return data, ok
 	}
 
-	if samlPayload == "" {
+	return "", false
+}
+
+func GetLoginData() (saml.LoginData, error) {
+	samlPayload, gotSaml := getSamlFromCache()
+
+	if !gotSaml {
 		if viper.GetBool("cache.cache_only") {
 			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
 		}
@@ -89,14 +94,14 @@ func GetLoginData() (saml.LoginData, error) {
 			}
 		}
 
-		samlPayload, err := okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
+		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
 
 		if err != nil {
 			return saml.LoginData{}, err
 		}
 
 		if !viper.GetBool("cache.no_cache") {
-			cache.Write("okta:samlResponse", string(samlPayload), 10*time.Minute)
+			cache.Write(samlResponseCacheKey(), string(samlPayload), 10*time.Minute)
 		}
 	}
 
