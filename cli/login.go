@@ -40,7 +40,7 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
-func samlResponseCacheKey() {
+func samlResponseCacheKey() string {
 	return fmt.Sprintf("okta:samlResponse:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
 }
 
@@ -99,16 +99,18 @@ func GetLoginData() (saml.LoginData, error) {
 		if err != nil {
 			return saml.LoginData{}, err
 		}
-
-		if !viper.GetBool("cache.no_cache") {
-			cache.Write(samlResponseCacheKey(), string(samlPayload), 10*time.Minute)
-		}
 	}
 
 	samlResponse, err := saml.ParseResponse(samlPayload)
 
 	if err != nil {
 		return saml.LoginData{}, err
+	}
+
+	expiryTime := samlResponse.Assertion.Conditions.NotOnOrAfter
+
+	if !viper.GetBool("cache.no_cache") {
+		cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
 	}
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
