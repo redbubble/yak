@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
@@ -39,53 +40,77 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
+func samlResponseCacheKey() string {
+	return fmt.Sprintf("okta:samlResponse:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
+}
+
+func getSamlFromCache() (string, bool) {
+	if !viper.GetBool("cache.no_cache") {
+		data, ok := cache.Check(samlResponseCacheKey()).(string)
+
+		return data, ok
+	}
+
+	return "", false
+}
+
 func GetLoginData() (saml.LoginData, error) {
-	if viper.GetBool("cache.cache_only") {
-		return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
-	}
+	samlPayload, gotSaml := getSamlFromCache()
 
-	username := viper.GetString("okta.username")
+	if !gotSaml {
+		if viper.GetBool("cache.cache_only") {
+			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+		}
 
-	if username == "" {
-		fmt.Fprint(os.Stderr, "username: ")
-		username, _ = getLine()
-	}
+		username := viper.GetString("okta.username")
 
-	fmt.Fprint(os.Stderr, "password: ")
-	password, _ := getPassword()
+		if username == "" {
+			fmt.Fprint(os.Stderr, "username: ")
+			username, _ = getLine()
+		}
 
-	authResponse, err := okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
+		fmt.Fprint(os.Stderr, "password: ")
+		password, _ := getPassword()
 
-	if err != nil {
-		return saml.LoginData{}, err
-	}
+		authResponse, err := okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
 
-	for authResponse.Status == "MFA_REQUIRED" {
-		for _, factor := range authResponse.Embedded.Factors {
-			if factor.FactorType == "token:software:totp" {
-				fmt.Fprintf(os.Stderr, "MFA key (%s): ", factor.Provider)
-				passCode, _ := getLine()
+		if err != nil {
+			return saml.LoginData{}, err
+		}
 
-				authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{authResponse.StateToken, passCode})
-				break
+		for authResponse.Status == "MFA_REQUIRED" {
+			for _, factor := range authResponse.Embedded.Factors {
+				if factor.FactorType == "token:software:totp" {
+					fmt.Fprintf(os.Stderr, "MFA key (%s): ", factor.Provider)
+					passCode, _ := getLine()
+
+					authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{authResponse.StateToken, passCode})
+					break
+				}
+			}
+
+			if err != nil {
+				return saml.LoginData{}, err
 			}
 		}
+
+		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
 
 		if err != nil {
 			return saml.LoginData{}, err
 		}
 	}
 
-	samlPayload, err := okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
+	samlResponse, err := saml.ParseResponse(samlPayload)
 
 	if err != nil {
 		return saml.LoginData{}, err
 	}
 
-	samlResponse, err := saml.ParseResponse(samlPayload)
+	expiryTime := samlResponse.Assertion.Conditions.NotOnOrAfter
 
-	if err != nil {
-		return saml.LoginData{}, err
+	if !viper.GetBool("cache.no_cache") {
+		cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
 	}
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
