@@ -1,5 +1,7 @@
 # yak
 
+[![Build Status](https://travis-ci.org/redbubble/yak.svg?branch=master)](https://travis-ci.org/redbubble/yak)
+
 A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kredentials'.
 
 ## Usage
