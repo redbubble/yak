@@ -8,6 +8,7 @@ import (
 
 	"github.com/redbubble/yak/aws"
 	"github.com/redbubble/yak/cli"
+	"github.com/redbubble/yak/output"
 )
 
 func printVarsCmd(cmd *cobra.Command, args []string) {
@@ -20,7 +21,7 @@ func printVarsCmd(cmd *cobra.Command, args []string) {
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			output.ErrorPrintf("%v\n", err)
 			os.Exit(1)
 		}
 
@@ -28,7 +29,7 @@ func printVarsCmd(cmd *cobra.Command, args []string) {
 		creds, err = cli.AssumeRole(loginData, roleName)
 
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			output.ErrorPrintf("%v\n", err)
 			os.Exit(1)
 		}
 

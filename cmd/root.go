@@ -1,14 +1,15 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/redbubble/yak/cache"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/redbubble/yak/cache"
+	"github.com/redbubble/yak/output"
 )
 
 var rootCmd = &cobra.Command{
@@ -60,17 +61,19 @@ func init() {
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Do not use caching for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only look at cached data; do not request anything from Okta. Mutually exclusive with --no-cache")
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Only produce output where that output is the direct result of the command issued")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
+	viper.BindPFlag("cli.quiet", rootCmd.PersistentFlags().Lookup("quiet"))
 }
 
 func initCache() {
 	dir, err := homedir.Dir()
 
 	if err != nil {
-		fmt.Println(err)
+		output.ErrorPrintln(err)
 		os.Exit(1)
 	}
 
@@ -81,7 +84,7 @@ func initConfig() {
 	home, err := homedir.Dir()
 
 	if err != nil {
-		fmt.Println(err)
+		output.ErrorPrintln(err)
 		os.Exit(1)
 	}
 
@@ -90,14 +93,14 @@ func initConfig() {
 	err = viper.ReadInConfig()
 
 	if err != nil {
-		fmt.Println(err)
+		output.ErrorPrintln(err)
 		os.Exit(1)
 	}
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		output.ErrorPrintln(err)
 		os.Exit(1)
 	}
 }

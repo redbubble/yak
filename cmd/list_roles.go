@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/redbubble/yak/cli"
+	"github.com/redbubble/yak/output"
 )
 
 func listRolesCmd(cmd *cobra.Command, args []string) {
@@ -17,7 +18,7 @@ func listRolesCmd(cmd *cobra.Command, args []string) {
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			output.ErrorPrintf("%v\n", err)
 			os.Exit(1)
 		}
 

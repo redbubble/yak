@@ -3,13 +3,14 @@ package cache
 import (
 	"bufio"
 	"encoding/gob"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/patrickmn/go-cache"
 	"github.com/spf13/viper"
+
+	"github.com/redbubble/yak/output"
 )
 
 var cacheHandle *cache.Cache
@@ -20,7 +21,7 @@ func Cache() *cache.Cache {
 		err := importCache(roleExpiryDuration)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Couldn't read cache from file: %v\n", err)
+			output.ErrorPrintf("Warning: Couldn't read cache from file: %v\n", err)
 			cacheHandle = cache.New(roleExpiryDuration, roleExpiryDuration)
 		}
 	}
