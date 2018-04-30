@@ -3,7 +3,6 @@ package cache
 import (
 	"bufio"
 	"encoding/gob"
-	"fmt"
 	"os"
 	"time"
 
@@ -20,7 +19,6 @@ func Cache() *cache.Cache {
 		err := importCache(roleExpiryDuration)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Couldn't read cache from file: %v\n", err)
 			cacheHandle = cache.New(roleExpiryDuration, roleExpiryDuration)
 		}
 	}
