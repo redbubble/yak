@@ -17,7 +17,7 @@ func listRolesCmd(cmd *cobra.Command, args []string) {
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
 
