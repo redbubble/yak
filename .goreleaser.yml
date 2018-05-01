@@ -20,7 +20,7 @@ nfpm:
     - rpm
   license: MIT
   files:
-    "static/completions/_yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
+    "static/completions/yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
     "static/completions/yak.bash": "/usr/share/bash-completion/completions/yak"
 brew:
   github:
@@ -40,4 +40,4 @@ brew:
   install: |
     bin.install "yak"
     bash_completion.install "static/completions/yak.bash" => "yak"
-    zsh_completion.install "static/completions/_yak.zsh" => "_yak"
+    zsh_completion.install "static/completions/yak.zsh" => "_yak"
