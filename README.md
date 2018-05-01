@@ -32,13 +32,14 @@ yak --list-roles
 
 `yak` will print a list of available roles and exit.
 
-#### Flags
+#### Arguments
 
 ```
   -d, --aws-session-duration int   The session duration to request from AWS (in seconds)
+      --cache-only                 Only look at cached data; do not request anything from Okta. Mutually exclusive with --no-cache
   -h, --help                       Display this help message and exit
   -l, --list-roles                 List all available AWS roles and exit
-      --no-cache                   Do not use caching for this request
+      --no-cache                   Do not use caching for this request. Mutually exclusive with --cache-only
   -u, --okta-username string       Your Okta username
 ```
 
