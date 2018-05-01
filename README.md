@@ -8,7 +8,7 @@ A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kre
 
 ### Installation
 
-#### Deb
+#### Ubuntu/Debian (`deb` package)
 
 Download the deb file from the [latest release](https://github.com/redbubble/yak/releases/latest).
 
@@ -24,7 +24,7 @@ or
 sudo dpkg -i <filename>
 ```
 
-#### RPM
+#### RPM package
 
 Download the RPM file from the [latest release](https://github.com/redbubble/yak/releases/latest).
 
