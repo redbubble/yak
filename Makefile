@@ -17,4 +17,4 @@ install:
 release:
 	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
-	goreleaser
+	goreleaser --rm-dist
