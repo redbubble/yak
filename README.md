@@ -8,6 +8,20 @@ A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kre
 
 ### Installation
 
+#### macOS with Homebrew
+
+The easiest option for macOS users is to install `yak` via Homebrew.
+This will also help keep `yak` up-to-date when you run `brew upgrade`
+as usual.
+
+```sh
+brew tap redbubble/yak
+brew install yak
+```
+
+This will also put ZSH and Bash completions in the right spot; they
+should be usable next time you reload your shell config.
+
 #### Ubuntu/Debian (`deb` package)
 
 Download the deb file from the [latest release](https://github.com/redbubble/yak/releases/latest).
