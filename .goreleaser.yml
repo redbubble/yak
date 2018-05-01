@@ -33,7 +33,6 @@ brew:
   folder: Formula
   homepage: https://github.com/redbubble/yak
   description: A tool to log in to AWS through Okta
-  skip_upload: true
 
   test: |
     system "#{bin}/yak --help"
