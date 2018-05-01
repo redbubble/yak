@@ -6,7 +6,49 @@ A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kre
 
 ## Usage
 
-To install yak, run `go get -u github.com/redbubble/yak`.
+### Installation
+
+#### Manually
+
+Download the [latest release](https://github.com/yak/releases/latest) for your architecture. `yak` is statically linked,
+so all you should need to do is put the executable somewhere in your $PATH.
+
+This method will not give you tab-completion; if you'd like that, the completions files are available in
+[/static/completions](https://github.com/redbubble/yak/tree/master/static/completions).
+
+#### Deb
+
+Download the deb file from the [latest release](https://github.com/redbubble/yak/releases/latest).
+
+You can then install it with
+
+```
+sudo apt install <filename>
+```
+
+or
+
+```
+sudo dpkg -i <filename>
+```
+
+#### RPM
+
+Download the RPM file from the [latest release](https://github.com/redbubble/yak/releases/latest).
+
+You can then install it with
+
+```
+sudo dnf install <filename>
+```
+
+#### Go Get
+
+This should only really be preferred if you want to hack on `yak`. If you want to do that:
+
+```
+go get -u github.com/redbubble/yak
+ ```
 
 ### Running
 

@@ -8,3 +8,13 @@ builds:
       - amd64
 archive:
   format: binary
+nfpm:
+  description: A tool to log in to AWS through Okta
+  maintainer: Redbubble <domain@redbubble.com>
+  formats:
+    - deb
+    - rpm
+  license: MIT
+  files:
+    "static/completions/_yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
+    "static/completions/yak.bash": "/usr/share/bash-completion/completions/yak"
