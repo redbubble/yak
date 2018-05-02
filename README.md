@@ -8,15 +8,21 @@ A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kre
 
 ### Installation
 
-#### Manually
+#### macOS with Homebrew
 
-Download the [latest release](https://github.com/yak/releases/latest) for your architecture. `yak` is statically linked,
-so all you should need to do is put the executable somewhere in your $PATH.
+The easiest option for macOS users is to install `yak` via Homebrew.
+This will also help keep `yak` up-to-date when you run `brew upgrade`
+as usual.
 
-This method will not give you tab-completion; if you'd like that, the completions files are available in
-[/static/completions](https://github.com/redbubble/yak/tree/master/static/completions).
+```sh
+brew tap redbubble/yak
+brew install yak
+```
 
-#### Deb
+This will also put ZSH and Bash completions in the right spot; they
+should be usable next time you reload your shell config.
+
+#### Ubuntu/Debian (`deb` package)
 
 Download the deb file from the [latest release](https://github.com/redbubble/yak/releases/latest).
 
@@ -32,7 +38,7 @@ or
 sudo dpkg -i <filename>
 ```
 
-#### RPM
+#### RPM package
 
 Download the RPM file from the [latest release](https://github.com/redbubble/yak/releases/latest).
 
@@ -49,6 +55,14 @@ This should only really be preferred if you want to hack on `yak`. If you want t
 ```
 go get -u github.com/redbubble/yak
  ```
+
+#### Manually
+
+Download the [latest release](https://github.com/yak/releases/latest) for your architecture. `yak` is statically linked,
+so all you should need to do is put the executable somewhere in your $PATH.
+
+This method will not give you tab-completion; if you'd like that, the completions files are available in
+[/static/completions](https://github.com/redbubble/yak/tree/master/static/completions).
 
 ### Running
 

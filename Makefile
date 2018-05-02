@@ -1,4 +1,4 @@
-VERSION ?= 1.1.1
+VERSION ?= 1.1.2
 
 .PHONY: vendor test install
 
@@ -17,4 +17,4 @@ install:
 release:
 	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
-	goreleaser
+	goreleaser --rm-dist

@@ -7,7 +7,11 @@ builds:
     goarch:
       - amd64
 archive:
-  format: binary
+  format: tar.gz
+  files:
+    - LICENSE
+    - README.md
+    - static/completions/*
 nfpm:
   description: A tool to log in to AWS through Okta
   maintainer: Redbubble <domain@redbubble.com>
@@ -16,5 +20,23 @@ nfpm:
     - rpm
   license: MIT
   files:
-    "static/completions/_yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
+    "static/completions/yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
     "static/completions/yak.bash": "/usr/share/bash-completion/completions/yak"
+brew:
+  github:
+    owner: redbubble
+    name: homebrew-yak
+  commit_author:
+    name: toothbrush
+    email: paul@denknerd.org
+
+  folder: Formula
+  homepage: https://github.com/redbubble/yak
+  description: A tool to log in to AWS through Okta
+
+  test: |
+    system "#{bin}/yak --help"
+  install: |
+    bin.install "yak"
+    bash_completion.install "static/completions/yak.bash" => "yak"
+    zsh_completion.install "static/completions/yak.zsh" => "_yak"
