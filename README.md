@@ -50,9 +50,8 @@ sudo dnf install <filename>
 
 #### A note about completions
 
-We've seen issues using tab-completion on older versions of ZSH (this was on OS X 10.11).  It seems
-that version 5.1 or newer will work correctly.  In the case of macOS, you can `brew install zsh` -
-but don't forget to use `chsh` to actually point to the updated version in this case.
+We've seen issues using tab-completion on older versions of ZSH.  It seems
+that version 5.1 or newer will work correctly.
 
 #### Go Get
 
