@@ -8,6 +8,8 @@ function _yak {
                '--list-roles[List available AWS roles and exit]' \
                '-u[Your Okta username]:username' \
                '--okta-username[Your Okta username]:username' \
+               '--okta-domain[The domain to use for requests to Okta]:domain' \
+               '--okta-aws-saml-endpoint[The app embed path for the AWS app within Okta]:path' \
                '-d[The session duration to request from AWS (in seconds)]:duration' \
                '--aws-session-duration[The session duration to request from AWS (in seconds)]:duration' \
                '--no-cache[Ignore cache for this request. Mutually exclusive with --cache-only]' \

@@ -36,7 +36,8 @@ var rootCmd = &cobra.Command{
 
 		// If we've made it to this point, we need to have an Okta domain and an AWS path
 		if viper.GetString("okta.domain") == "" || viper.GetString("okta.aws_saml_endpoint") == "" {
-			fmt.Fprintln(os.Stderr, "An Okta domain and an AWS SAML Endpoint must be configured for yak to work")
+			fmt.Fprintln(os.Stderr, "An Okta domain and an AWS SAML Endpoint must be configured for yak to work.")
+			fmt.Fprintln(os.Stderr, "These can be configured either in the [okta] section of ~/.yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.")
 			return
 		}
 
@@ -63,10 +64,14 @@ func init() {
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
+	rootCmd.PersistentFlags().String("okta-domain", "", "The domain to use for requests to Okta")
+	rootCmd.PersistentFlags().String("okta-aws-saml-endpoint", "", "The app embed path for the AWS app within Okta")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
+	viper.BindPFlag("okta.domain", rootCmd.PersistentFlags().Lookup("okta-domain"))
+	viper.BindPFlag("okta.aws_saml_endpoint", rootCmd.PersistentFlags().Lookup("okta-aws-saml-endpoint"))
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
@@ -92,13 +97,9 @@ func initConfig() {
 	}
 
 	viper.AddConfigPath(path.Join(home, ".yak"))
-	viper.SetConfigName("config")
-	err = viper.ReadInConfig()
 
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	viper.SetConfigName("config")
+	viper.ReadInConfig()
 }
 
 func Execute() {

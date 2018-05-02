@@ -4,7 +4,7 @@ _yak()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="-h --help -l --list-roles -u --okta-username -d --aws-session-duration --no-cache --cache-only"
+    opts="-h --help -l --list-roles -u --okta-username --okta-domain --okta-aws-saml-endpoint -d --aws-session-duration --no-cache --cache-only"
     roles=$(yak --list-roles --cache-only 2>/dev/null)
 
     nonoption_count=0
