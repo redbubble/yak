@@ -81,7 +81,7 @@ func GetLoginData() (saml.LoginData, error) {
 		for authResponse.Status == "MFA_REQUIRED" {
 			for _, factor := range authResponse.Embedded.Factors {
 				if factor.FactorType == "token:software:totp" {
-					fmt.Fprintf(os.Stderr, "MFA key (%s): ", factor.Provider)
+					fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
 					passCode, _ := getLine()
 
 					authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{authResponse.StateToken, passCode})

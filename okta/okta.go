@@ -210,3 +210,12 @@ func extractSamlPayload(htmlDocument []byte) (string, error) {
 
 	return data, nil
 }
+
+func TotpFactorName(key string) string {
+	switch key {
+	case "GOOGLE":
+		return "Google Authenticator"
+	default:
+		return key
+	}
+}
