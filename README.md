@@ -48,6 +48,11 @@ You can then install it with
 sudo dnf install <filename>
 ```
 
+#### A note about completions
+
+We've seen issues using tab-completion on older versions of ZSH.  It seems
+that version 5.1 or newer will work correctly.
+
 #### Go Get
 
 This should only really be used if you want to hack on `yak`.  If you want to do that:
