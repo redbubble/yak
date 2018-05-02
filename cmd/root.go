@@ -53,13 +53,13 @@ func init() {
 	cobra.OnInitialize(initCache)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Display this help message and exit")
-	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List all available AWS roles and exit")
+	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List available AWS roles and exit")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
-	rootCmd.PersistentFlags().Bool("no-cache", false, "Do not use caching for this request. Mutually exclusive with --cache-only")
-	rootCmd.PersistentFlags().Bool("cache-only", false, "Only look at cached data; do not request anything from Okta. Mutually exclusive with --no-cache")
+	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
+	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
