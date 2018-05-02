@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/redbubble/yak.svg?branch=master)](https://travis-ci.org/redbubble/yak)
 
-A tool to log in to AWS through Okta. If you want a backronym, try 'Your AWS Kredentials'.
+A tool to generate access keys for AWS using Okta. If you want a backronym, try 'Your AWS Kredentials'.
 
 ## Usage
 
@@ -24,7 +24,7 @@ should be usable next time you reload your shell config.
 
 #### Ubuntu/Debian (`deb` package)
 
-Download the deb file from the [latest release](https://github.com/redbubble/yak/releases/latest).
+Download the DEB package from the [latest release](https://github.com/redbubble/yak/releases/latest) page.
 
 You can then install it with
 
@@ -40,7 +40,7 @@ sudo dpkg -i <filename>
 
 #### RPM package
 
-Download the RPM file from the [latest release](https://github.com/redbubble/yak/releases/latest).
+Download the RPM package from the [latest release](https://github.com/redbubble/yak/releases/latest) page.
 
 You can then install it with
 
@@ -50,7 +50,7 @@ sudo dnf install <filename>
 
 #### Go Get
 
-This should only really be preferred if you want to hack on `yak`. If you want to do that:
+This should only really be used if you want to hack on `yak`.  If you want to do that:
 
 ```
 go get -u github.com/redbubble/yak
@@ -58,15 +58,15 @@ go get -u github.com/redbubble/yak
 
 #### Manually
 
-Download the [latest release](https://github.com/yak/releases/latest) for your architecture. `yak` is statically linked,
-so all you should need to do is put the executable somewhere in your $PATH.
+Download the [latest release](https://github.com/yak/releases/latest) for your architecture. The `yak` executable is statically linked,
+so all you should need to do is put the executable somewhere in your `$PATH`.
 
 This method will not give you tab-completion; if you'd like that, the completions files are available in
 [/static/completions](https://github.com/redbubble/yak/tree/master/static/completions).
 
 ### Running
 
-`yak` can be run like this:
+You can run `yak` like this:
 
 ```
 yak <role> [<command>]
@@ -144,8 +144,8 @@ yak prod [<command>]
 
 ### Installing dependencies
 
-You'll need [dep](https://github.com/golang/dep) (If you're on OSX, `brew install dep`. Linux is a bit tricker; see the
-[README](https://github.com/golang/dep#installation) for details)
+You'll need the [dep](https://github.com/golang/dep) tool (if you're on macOS, `brew install dep`. Linux is a bit tricker; see the
+[dep README](https://github.com/golang/dep#installation) for details).
 
 Then run:
 ```
