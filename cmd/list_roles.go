@@ -41,6 +41,10 @@ func listRolesCmd(cmd *cobra.Command, args []string) {
 func getAliases() ([]string, error) {
 	var aliases map[string]string
 
+	if !viper.IsSet("alias") {
+		return []string{}, nil
+	}
+
 	err := viper.Sub("alias").Unmarshal(&aliases)
 
 	if err != nil {
