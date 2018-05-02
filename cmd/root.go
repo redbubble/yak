@@ -56,6 +56,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	cobra.OnInitialize(defaultConfigValues)
 	cobra.OnInitialize(initConfig)
 	cobra.OnInitialize(initCache)
 
@@ -100,6 +101,10 @@ func initConfig() {
 
 	viper.SetConfigName("config")
 	viper.ReadInConfig()
+}
+
+func defaultConfigValues() {
+	viper.SetDefault("aws.session_duration", 3600)
 }
 
 func Execute() {
