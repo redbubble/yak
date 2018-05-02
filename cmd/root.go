@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 
 		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
 		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
-			cmd.Help()
+			fmt.Fprintln(os.Stderr, "Please don't use --cache-only and --no-cache simultaneously.")
 			return
 		}
 
