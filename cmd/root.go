@@ -12,16 +12,16 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "yak [flags] <role> [<subcommand>]",
-	Short: "A command-line shim to do stuff with AWS credentials pulled from Okta",
-	Long: `A command-line shim to do stuff with AWS credentials pulled from Okta
+	Use:   "yak [flags] [--list-roles | <role> [<subcommand...>]]",
+	Short: "A shim to do stuff with AWS credentials using Okta",
+	Long: `A shim to do stuff with AWS credentials using Okta
 
-  If the --list-roles or -l flag is set, yak will log in to Okta and return
-  the list of roles available in the SAML assertion. Otherwise, it will attempt
-  to assume the <role> provided. If a <subcommand> is set, yak will attempt to
-  run it with the credentials injected into its environment. Without a
-  <subcommand>, the credentials will be printed to standard output inside export
-  statements.`,
+  * With --list-roles, print a list of your available AWS roles.
+    Otherwise, yak will attempt to generate AWS keys for <role>.
+
+  * If <subcommand> is set, yak will attempt to execute it with the
+    AWS keys injected into the environment.  Otherwise, the
+    credentials will conveniently be printed stdout.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 && !viper.GetBool("list-roles") {
 			cmd.Help()
