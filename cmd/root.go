@@ -34,6 +34,12 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		// If we've made it to this point, we need to have an Okta domain and an AWS path
+		if viper.GetString("okta.domain") == "" || viper.GetString("okta.aws_saml_endpoint") == "" {
+			fmt.Fprintln(os.Stderr, "An Okta domain and an AWS SAML Endpoint must be configured for yak to work")
+			return
+		}
+
 		if viper.GetBool("list-roles") {
 			listRolesCmd(cmd, args)
 		} else if len(args) == 1 {
