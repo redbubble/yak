@@ -122,6 +122,33 @@ aws_saml_endpoint = "/app/amazon_aws/<saml_app_id>/sso/saml"
 username = "<my_okta_username>"
 ```
 
+##### How to find your config values
+
+`domain`: This the same domain where you log in to Okta.
+
+`aws_saml_endpoint`: To get this value, you'll need to:
+
+1. Log in to Okta
+2. Find the AWS application
+3. Copy the URL for the AWS application, e.g. by right-clicking and selecting
+   "Copy Link Address" or similar
+4. Remove everything up to `okta.com/` (inclusive)
+5. Remove everything from the `?` onwards
+
+OR ask your organisation's Okta administrator.
+
+If you're an Okta administrator, you can also:
+
+1. Log in to Okta
+2. Click the "Admin" button
+3. Navigate to Applications
+4. Open the "Amazon Web Services" application
+5. On the General tab, copy the App Embed Link
+6. Remove everything up to `okta.com/` (inclusive)
+
+`username`: The username you use when logging in to Okta. If in doubt, consult
+your organisation's Okta administrator.
+
 #### AWS Config
 
 ```toml
