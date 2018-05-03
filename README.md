@@ -60,9 +60,7 @@ username = "<my_okta_username>"
 
 ##### How to find your config values
 
-`domain`: This the same domain where you log in to Okta, with no trailing slash.
-For example, if you log in to Okta at `https://demo.okta.com/`, this would be
-`https://demo.okta.com`.
+`domain`: This the same domain where you log in to Okta.
 
 `aws_saml_endpoint`: To get this value, you'll need to:
 
