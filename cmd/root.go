@@ -37,7 +37,7 @@ var rootCmd = &cobra.Command{
 		// If we've made it to this point, we need to have an Okta domain and an AWS path
 		if viper.GetString("okta.domain") == "" || viper.GetString("okta.aws_saml_endpoint") == "" {
 			fmt.Fprintln(os.Stderr, "An Okta domain and an AWS SAML Endpoint must be configured for yak to work.")
-			fmt.Fprintln(os.Stderr, "These can be configured either in the [okta] section of ~/.yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.")
+			fmt.Fprintln(os.Stderr, "These can be configured either in the [okta] section of ~/.config/yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.")
 			return
 		}
 
@@ -79,28 +79,60 @@ func init() {
 }
 
 func initCache() {
-	dir, err := homedir.Dir()
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	viper.SetDefault("cache.file_location", path.Join(dir, ".yak", "cache"))
+	viper.SetDefault("cache.file_location", path.Join(getDataPath(), "cache"))
 }
 
 func initConfig() {
-	home, err := homedir.Dir()
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	viper.AddConfigPath(path.Join(home, ".yak"))
+	viper.AddConfigPath(getConfigPath())
 
 	viper.SetConfigName("config")
 	viper.ReadInConfig()
+}
+
+func getDataPath() string {
+	dataPath := os.Getenv("XDG_DATA_HOME")
+
+	if dataPath == "" {
+		home, err := homedir.Dir()
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		dataPath = path.Join(home, ".local", "share")
+	}
+
+	yakPath := path.Join(dataPath, "yak")
+
+	if _, err := os.Stat(yakPath); os.IsNotExist(err) {
+		os.MkdirAll(yakPath, 0700)
+	}
+
+	return yakPath
+}
+
+func getConfigPath() string {
+	configPath := os.Getenv("XDG_CONFIG_HOME")
+
+	if configPath == "" {
+		home, err := homedir.Dir()
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		configPath = path.Join(home, ".config")
+	}
+
+	yakPath := path.Join(configPath, "yak")
+
+	if _, err := os.Stat(yakPath); os.IsNotExist(err) {
+		os.MkdirAll(yakPath, 0700)
+	}
+
+	return yakPath
 }
 
 func defaultConfigValues() {

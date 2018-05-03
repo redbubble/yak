@@ -106,7 +106,7 @@ yak --list-roles
 
 ### Configuring
 
-Yak can be configured with a configuration file at  `~/.yak/config.toml`.
+Yak can be configured with a configuration file at  `~/.config/yak/config.toml`.
 
 #### Okta Config
 
