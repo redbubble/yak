@@ -119,7 +119,7 @@ Yak can be configured with a configuration file at  `~/.yak/config.toml`.
 domain = "https://<my_okta_domain>.okta.com"
 
 # Required. The path for fetching the SAML assertion from okta.
-aws_saml_endpoint = "/app/amazon_aws/<saml_app_id>/sso/saml"
+aws_saml_endpoint = "/home/<okta_app_name>/<generic_id>/<app_id>"
 
 # Optional. Your okta username.
 username = "<my_okta_username>"
