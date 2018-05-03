@@ -96,12 +96,15 @@ yak --list-roles
 #### Arguments
 
 ```
-  -d, --aws-session-duration int   The session duration to request from AWS (in seconds)
-      --cache-only                 Only look at cached data; do not request anything from Okta. Mutually exclusive with --no-cache
-  -h, --help                       Display this help message and exit
-  -l, --list-roles                 List all available AWS roles and exit
-      --no-cache                   Do not use caching for this request. Mutually exclusive with --cache-only
-  -u, --okta-username string       Your Okta username
+  -d, --aws-session-duration int        The session duration to request from AWS (in seconds)
+      --cache-only                      Only use cache, do not make external requests. Mutually exclusive with --no-cache
+  -h, --help                            Display this help message and exit
+  -l, --list-roles                      List available AWS roles and exit
+      --no-cache                        Ignore cache for this request. Mutually exclusive with --cache-only
+      --okta-aws-saml-endpoint string   The app embed path for the AWS app within Okta
+      --okta-domain string              The domain to use for requests to Okta
+  -u, --okta-username string            Your Okta username
+      --version                         Print the current version and exit
 ```
 
 ### Configuring

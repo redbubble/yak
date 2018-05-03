@@ -12,7 +12,7 @@ fmt:
 	go fmt ./...
 
 install:
-	go install
+	go install -ldflags "-X main.version=${VERSION}"
 
 release:
 	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
