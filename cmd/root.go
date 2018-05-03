@@ -23,11 +23,6 @@ var rootCmd = &cobra.Command{
     AWS keys injected into the environment.  Otherwise, the
     credentials will conveniently be printed stdout.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 && !viper.GetBool("list-roles") {
-			cmd.Help()
-			return
-		}
-
 		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
 		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
 			fmt.Fprintln(os.Stderr, "Please don't use --cache-only and --no-cache simultaneously.")
@@ -43,10 +38,14 @@ var rootCmd = &cobra.Command{
 
 		if viper.GetBool("list-roles") {
 			listRolesCmd(cmd, args)
+		} else if viper.GetBool("version") {
+			versionCmd()
 		} else if len(args) == 1 {
 			printVarsCmd(cmd, args)
-		} else {
+		} else if len(args) > 1 {
 			shimCmd(cmd, args)
+		} else {
+			cmd.Help()
 		}
 
 		if !viper.GetBool("cache.no_cache") {
@@ -62,7 +61,9 @@ func init() {
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Display this help message and exit")
 	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List available AWS roles and exit")
+	rootCmd.PersistentFlags().Bool("version", false, "Print the current version and exit")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
+	viper.BindPFlag("version", rootCmd.PersistentFlags().Lookup("version"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().String("okta-domain", "", "The domain to use for requests to Okta")
@@ -76,6 +77,10 @@ func init() {
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
+}
+
+func versionCmd() {
+	fmt.Println(viper.GetString("yak.version"))
 }
 
 func initCache() {

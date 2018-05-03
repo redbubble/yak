@@ -14,6 +14,7 @@ function _yak {
                '--aws-session-duration[The session duration to request from AWS (in seconds)]:duration' \
                '--no-cache[Ignore cache for this request. Mutually exclusive with --cache-only]' \
                '--cache-only[Only use cache, do not make external requests. Mutually exclusive with --no-cache]' \
+               '--version[Print the current version and exit]' \
                '1:environment:(${roles})' '*::arguments: _yak_command'
 }
 
