@@ -80,7 +80,7 @@ func init() {
 }
 
 func versionCmd() {
-	fmt.Println(viper.GetString("yak.version"))
+	fmt.Printf("yak v%s\n", viper.GetString("yak.version"))
 }
 
 func initCache() {
