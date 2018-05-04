@@ -1,5 +1,6 @@
-VERSION ?= 1.2.0
+VERSION ?= 1.2.1
 GIT_HASH = $(shell git rev-parse --short HEAD)
+DELIVERY_ENGINEERING_GPG_KEY = 9CC66977F5C47541
 
 .PHONY: vendor test install
 
@@ -19,3 +20,4 @@ release:
 	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
 	goreleaser --rm-dist
+	deb-s3 upload --s3-region=ap-southeast-2 --bucket=redbubble-deb-repository --sign=${DELIVERY_ENGINEERING_GPG_KEY} bin/yak_${VERSION}_linux_amd64.deb

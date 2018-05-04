@@ -22,44 +22,32 @@ brew install yak
 This will also put ZSH and Bash completions in the right spot; they
 should be usable next time you reload your shell config.
 
-#### Ubuntu/Debian (`deb` package)
+#### Ubuntu/Debian APT repository
 
-Download the DEB package from the [latest release](https://github.com/redbubble/yak/releases/latest) page.
+`yak` can be installed from our APT repo.  This should get you up and
+running:
 
-You can then install it with
-
-```
-sudo apt install <filename>
-```
-
-or
-
-```
-sudo dpkg -i <filename>
+```sh
+sudo apt install apt-transport-https curl gnupg2
+# This is the Redbubble GPG key, to verify releases:
+curl https://redbubble-deb-repository.s3-ap-southeast-2.amazonaws.com/delivery-engineers.pub.asc | sudo apt-key add -
+echo "deb https://redbubble-deb-repository.s3-ap-southeast-2.amazonaws.com/ stable main" > /etc/apt/sources.list.d/yak.list
+sudo apt update
+sudo apt install yak
 ```
 
-#### RPM package
+#### Standalone DEB/RPM packages
 
-Download the RPM package from the [latest release](https://github.com/redbubble/yak/releases/latest) page.
+We generate Deb and RPM packages as part of our release.
 
-You can then install it with
-
-```
-sudo dnf install <filename>
-```
+Download the package appropriate for your distro from the [latest
+release](https://github.com/redbubble/yak/releases/latest) page.
+Unfortunately, this won't give you nice automatic updates.
 
 #### A note about completions
 
 We've seen issues using tab-completion on older versions of ZSH.  It seems
 that version 5.1 or newer will work correctly.
-
-#### Go Get
-
-This should only really be used if you want to hack on `yak`.  If you want to do that:
-
-```
-go get -u github.com/redbubble/yak
- ```
 
 #### Manually
 
@@ -177,17 +165,35 @@ yak prod [<command>]
 
 ## Development
 
+### Go Get
+
+To hack on `yak`, you'll want to get a copy of the source.  To do
+that:
+
+```
+go get -u github.com/redbubble/yak
+ ```
+
 ### Installing dependencies
 
-You'll need the [dep](https://github.com/golang/dep) tool (if you're on macOS, `brew install dep`. Linux is a bit tricker; see the
-[dep README](https://github.com/golang/dep#installation) for details).
+You'll need the [dep](https://github.com/golang/dep) tool (if you're
+on macOS, `brew install dep`. Linux is a bit tricker; see the [dep
+README](https://github.com/golang/dep#installation) for details).
 
-Then run:
+Then run (inside your `$GOPATH/src/github.com/redbubble/yak` directory):
 ```
 make vendor
 ```
 
 This will install all your dependencies into the `vendor` directory.
+
+If you want to do releases, you'll also want the `deb-s3` package.
+You'll also want `gnupg2` to be able to sign releases, but i'll leave
+installation of that up to you.
+
+```sh
+gem install deb-s3
+```
 
 ### Running locally
 
