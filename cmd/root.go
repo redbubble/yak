@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"path"
@@ -81,6 +82,13 @@ func init() {
 
 func versionCmd() {
 	fmt.Printf("yak v%s\n", viper.GetString("yak.version"))
+
+	yabytes, _ := base64.StdEncoding.DecodeString(`
+IC8gICAgIFwKLyAgICAgICBcCiBcIF9fXyAvCiAgXG8gby9fX19fICAgICAg
+eQogICB8dnwgdiB2IFxfX19fLwogICAgVSAgeSAgWSAgdiAgXAogICAgICBc
+IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
+	var yascii = string(yabytes)
+	fmt.Printf("\n%s\n", yascii)
 }
 
 func initCache() {
