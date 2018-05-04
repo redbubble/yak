@@ -28,10 +28,10 @@ should be usable next time you reload your shell config.
 running:
 
 ```sh
-sudo apt install apt-transport-https curl gnupg2
+sudo apt install curl gnupg2
 # This is the Redbubble GPG key, to verify releases:
-curl https://redbubble-deb-repository.s3-ap-southeast-2.amazonaws.com/delivery-engineers.pub.asc | sudo apt-key add -
-echo "deb https://redbubble-deb-repository.s3-ap-southeast-2.amazonaws.com/ stable main" > /etc/apt/sources.list.d/yak.list
+curl https://raw.githubusercontent.com/redbubble/yak/master/static/delivery-engineers.pub.asc | sudo apt-key add -
+echo "deb http://apt.redbubble.com/ stable main" > /etc/apt/sources.list.d/yak.list
 sudo apt update
 sudo apt install yak
 ```
