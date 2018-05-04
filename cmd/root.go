@@ -84,6 +84,7 @@ func initCache() {
 
 func initConfig() {
 	viper.AddConfigPath(getConfigPath())
+	viper.AddConfigPath(oldConfigPath())
 
 	viper.SetConfigName("config")
 	viper.ReadInConfig()
@@ -110,6 +111,17 @@ func getDataPath() string {
 	}
 
 	return yakPath
+}
+
+func oldConfigPath() string {
+	home, err := homedir.Dir()
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
+	return path.Join(home, ".yak")
 }
 
 func getConfigPath() string {
