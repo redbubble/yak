@@ -24,6 +24,11 @@ var rootCmd = &cobra.Command{
     AWS keys injected into the environment.  Otherwise, the
     credentials will conveniently be printed stdout.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if viper.GetBool("version") {
+			versionCmd()
+			return
+		}
+
 		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
 		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
 			fmt.Fprintln(os.Stderr, "Please don't use --cache-only and --no-cache simultaneously.")
@@ -39,8 +44,6 @@ var rootCmd = &cobra.Command{
 
 		if viper.GetBool("list-roles") {
 			listRolesCmd(cmd, args)
-		} else if viper.GetBool("version") {
-			versionCmd()
 		} else if len(args) == 1 {
 			printVarsCmd(cmd, args)
 		} else if len(args) > 1 {
