@@ -8,6 +8,8 @@ A tool to generate access keys for AWS using Okta. If you want a backronym, try 
 
 ### Installation
 
+We produce builds of `yak` for OSX and Linux. Windows is not currently supported.
+
 #### macOS with Homebrew
 
 The easiest option for macOS users is to install `yak` via Homebrew.
