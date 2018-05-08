@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -10,15 +9,14 @@ import (
 	"github.com/redbubble/yak/cli"
 )
 
-func listRolesCmd(cmd *cobra.Command, args []string) {
+func listRolesCmd(cmd *cobra.Command, args []string) error {
 	roles, gotRoles := cli.GetRolesFromCache()
 
 	if !gotRoles {
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
+			return err
 		}
 
 		cli.CacheLoginRoles(loginData.Roles)
@@ -36,6 +34,8 @@ func listRolesCmd(cmd *cobra.Command, args []string) {
 		fmt.Printf("    %s\n", role.RoleArn)
 	}
 	fmt.Println()
+
+	return nil
 }
 
 func getAliases() ([]string, error) {
