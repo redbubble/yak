@@ -2,14 +2,18 @@ package cmd
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
+	"syscall"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/redbubble/yak/cache"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/redbubble/yak/cache"
 )
 
 var rootCmd = &cobra.Command{
@@ -23,31 +27,33 @@ var rootCmd = &cobra.Command{
   * If <subcommand> is set, yak will attempt to execute it with the
     AWS keys injected into the environment.  Otherwise, the
     credentials will conveniently be printed stdout.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if viper.GetBool("version") {
 			versionCmd()
-			return
+			return nil
 		}
 
 		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
 		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
-			fmt.Fprintln(os.Stderr, "Please don't use --cache-only and --no-cache simultaneously.")
-			return
+			return errors.New("Please don't use --cache-only and --no-cache simultaneously.")
 		}
 
 		// If we've made it to this point, we need to have an Okta domain and an AWS path
 		if viper.GetString("okta.domain") == "" || viper.GetString("okta.aws_saml_endpoint") == "" {
-			fmt.Fprintln(os.Stderr, "An Okta domain and an AWS SAML Endpoint must be configured for yak to work.")
-			fmt.Fprintln(os.Stderr, "These can be configured either in the [okta] section of ~/.config/yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.")
-			return
+			return errors.New(`An Okta domain and an AWS SAML Endpoint must be configured for yak to work.
+These can be configured either in the [okta] section of ~/.config/yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.`)
 		}
 
+		var err error
+
 		if viper.GetBool("list-roles") {
-			listRolesCmd(cmd, args)
+			err = listRolesCmd(cmd, args)
 		} else if len(args) == 1 {
-			printVarsCmd(cmd, args)
+			err = printVarsCmd(cmd, args)
 		} else if len(args) > 1 {
-			shimCmd(cmd, args)
+			err = shimCmd(cmd, args)
 		} else {
 			cmd.Help()
 		}
@@ -55,6 +61,8 @@ var rootCmd = &cobra.Command{
 		if !viper.GetBool("cache.no_cache") {
 			cache.Export()
 		}
+
+		return err
 	},
 }
 
@@ -169,7 +177,22 @@ func defaultConfigValues() {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		exitError, ok := err.(*exec.ExitError)
+
+		if ok {
+			// In this case, we had a subprocess and that subprocess returned an error code; we should return the same
+			// exit code as it did.
+			os.Exit(getExitCode(exitError))
+		} else {
+			// In this case, something went wrong, but there was either no subprocess or that subprocess didn't return
+			// an error code; we should output an  error message because it's likely nothing went to stderr.
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
 	}
+}
+
+func getExitCode(err *exec.ExitError) int {
+	ws := err.Sys().(syscall.WaitStatus)
+	return ws.ExitStatus()
 }
