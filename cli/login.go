@@ -63,14 +63,17 @@ func GetLoginData() (saml.LoginData, error) {
 		}
 
 		username := viper.GetString("okta.username")
+		password := viper.GetString("okta.password")
 
 		if username == "" {
 			fmt.Fprint(os.Stderr, "username: ")
 			username, _ = getLine()
 		}
 
-		fmt.Fprint(os.Stderr, "password: ")
-		password, _ := getPassword()
+		if password == "" {
+			fmt.Fprint(os.Stderr, "password: ")
+			password, _ = getPassword()
+		}
 
 		authResponse, err := okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
 
