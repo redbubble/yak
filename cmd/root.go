@@ -18,7 +18,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "yak [flags] [--list-roles | <role> [<subcommand...>]]",
+	Use:   "yak [flags] [--list-roles | [--] <role> [<subcommand...>]]",
 	Short: "A shim to do stuff with AWS credentials using Okta",
 	Long: `A shim to do stuff with AWS credentials using Okta
 
@@ -27,7 +27,10 @@ var rootCmd = &cobra.Command{
 
   * If <subcommand> is set, yak will attempt to execute it with the
     AWS keys injected into the environment.  Otherwise, the
-    credentials will conveniently be printed stdout.`,
+    credentials will conveniently be printed stdout.
+
+    Note that if you want to pass -/-- flags to your <subcommand>,
+    you'll need to put a '--' separator before the <role> so yak`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {

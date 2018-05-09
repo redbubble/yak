@@ -83,6 +83,13 @@ yak --list-roles
 
 `yak` will print a list of available roles and exit.
 
+Note that if you want to pass -/-- flags to subcommands, you'll need to put a '--' before the <role> to let `yak` know
+you're done passing flags to *it*, like this:
+
+```
+yak [flags] -- <role> <command --with-flags>
+```
+
 #### Arguments
 
 ```
@@ -95,6 +102,7 @@ yak --list-roles
       --okta-domain string              The domain to use for requests to Okta
   -u, --okta-username string            Your Okta username
       --version                         Print the current version and exit
+      --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
 ```
 
 ### Configuring
