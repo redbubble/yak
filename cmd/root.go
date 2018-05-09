@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"syscall"
 
@@ -48,6 +49,15 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 
 		var err error
 
+		channel := make(chan os.Signal, 2)
+		signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-channel
+			writeCache()
+			fmt.Fprintln(os.Stderr, "Recieved termination signal, exiting...")
+			os.Exit(1)
+		}()
+
 		if viper.GetBool("list-roles") {
 			err = listRolesCmd(cmd, args)
 		} else if len(args) == 1 {
@@ -58,9 +68,7 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 			cmd.Help()
 		}
 
-		if !viper.GetBool("cache.no_cache") {
-			cache.Export()
-		}
+		writeCache()
 
 		return err
 	},
@@ -176,10 +184,12 @@ func defaultConfigValues() {
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		exitError, ok := err.(*exec.ExitError)
+	err := rootCmd.Execute()
 
-		if ok {
+	if err != nil {
+		exitError, isExitError := err.(*exec.ExitError)
+
+		if isExitError {
 			// In this case, we had a subprocess and that subprocess returned an error code; we should return the same
 			// exit code as it did.
 			os.Exit(getExitCode(exitError))
@@ -189,6 +199,12 @@ func Execute() {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
+	}
+}
+
+func writeCache() {
+	if !viper.GetBool("cache.no_cache") {
+		cache.Export()
 	}
 }
 
