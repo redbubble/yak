@@ -121,6 +121,9 @@ aws_saml_endpoint = "/home/<okta_app_name>/<generic_id>/<app_id>"
 
 # Optional. Your okta username.
 username = "<my_okta_username>"
+
+# Optional. Your okta password.
+password = "<my_okta_password>"
 ```
 
 ##### How to find your config values
