@@ -33,7 +33,7 @@ func printVarsCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	for key, value := range aws.EnvironmentVariables(creds.Credentials) {
-		fmt.Printf("export %s='%s'\n", key, value)
+		fmt.Printf("export %s=%s\n", key, value)
 	}
 
 	return nil
