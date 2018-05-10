@@ -15,7 +15,7 @@ function _yak {
                '--no-cache[Ignore cache for this request. Mutually exclusive with --cache-only]' \
                '--cache-only[Only use cache, do not make external requests. Mutually exclusive with --no-cache]' \
                '--version[Print the current version and exit]' \
-               '--[Terminator for -- flags - necessary if you'd like to pass -/-- flags to subcommands]' \
+               '--[Terminator for -- flags - necessary if you would like to pass -/-- flags to subcommands]' \
                '1:environment:(${roles})' '*::arguments: _yak_command'
 }
 
