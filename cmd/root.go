@@ -126,7 +126,7 @@ func initConfig() {
 }
 
 func getDataPath() string {
-	dataPath := os.Getenv("XDG_DATA_HOME")
+	dataPath := os.Getenv("XDG_CACHE_HOME")
 
 	if dataPath == "" {
 		home, err := homedir.Dir()
@@ -136,7 +136,7 @@ func getDataPath() string {
 			os.Exit(1)
 		}
 
-		dataPath = path.Join(home, ".local", "share")
+		dataPath = path.Join(home, ".cache")
 	}
 
 	yakPath := path.Join(dataPath, "yak")
