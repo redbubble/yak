@@ -17,6 +17,8 @@ import (
 	"github.com/redbubble/yak/saml"
 )
 
+const max_login_retries = 3
+
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	if viper.GetBool("cache.no_cache") {
 		return []saml.LoginRole{}, false
@@ -58,21 +60,14 @@ func GetLoginData() (saml.LoginData, error) {
 	samlPayload, gotSaml := getSamlFromCache()
 
 	if !gotSaml {
+		var authResponse okta.OktaAuthResponse
+		var err error
+
 		if viper.GetBool("cache.cache_only") {
 			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
 		}
 
-		username := viper.GetString("okta.username")
-
-		if username == "" {
-			fmt.Fprint(os.Stderr, "username: ")
-			username, _ = getLine()
-		}
-
-		fmt.Fprint(os.Stderr, "password: ")
-		password, _ := getPassword()
-
-		authResponse, err := okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
+		authResponse, err = promptLogin()
 
 		if err != nil {
 			return saml.LoginData{}, err
@@ -81,10 +76,7 @@ func GetLoginData() (saml.LoginData, error) {
 		for authResponse.Status == "MFA_REQUIRED" {
 			for _, factor := range authResponse.Embedded.Factors {
 				if factor.FactorType == "token:software:totp" {
-					fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
-					passCode, _ := getLine()
-
-					authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{authResponse.StateToken, passCode})
+					authResponse, err = promptMFA(factor, authResponse.StateToken)
 					break
 				}
 			}
@@ -114,6 +106,60 @@ func GetLoginData() (saml.LoginData, error) {
 	}
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
+}
+
+func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuthResponse, error) {
+	var authResponse okta.OktaAuthResponse
+	var err error
+	retries := 0
+	unauthorised := true
+
+	for unauthorised && (retries < max_login_retries) {
+		retries += 1
+
+		fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
+		passCode, _ := getLine()
+
+		authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
+
+		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < max_login_retries {
+			fmt.Fprintln(os.Stderr, "Sorry, Try again.")
+		} else {
+			unauthorised = false
+		}
+	}
+
+	return authResponse, err
+}
+
+func promptLogin() (okta.OktaAuthResponse, error) {
+	var authResponse okta.OktaAuthResponse
+	var err error
+	retries := 0
+	unauthorised := true
+
+	for unauthorised && (retries < max_login_retries) {
+		retries += 1
+		username := viper.GetString("okta.username")
+
+		if username == "" {
+			fmt.Fprint(os.Stderr, "username: ")
+			username, _ = getLine()
+		}
+
+		fmt.Fprint(os.Stderr, "password: ")
+		password, _ := getPassword()
+
+		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
+
+		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < max_login_retries {
+			fmt.Fprintln(os.Stderr, "Sorry, try again.")
+		} else {
+			unauthorised = false
+		}
+	}
+
+	return authResponse, err
 }
 
 func CacheLoginRoles(roles []saml.LoginRole) {
