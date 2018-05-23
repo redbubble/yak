@@ -80,9 +80,9 @@ func GetLoginData() (saml.LoginData, error) {
 		}
 
 		for authResponse.Status == "MFA_REQUIRED" {
-			selectedFactorIndex := chooseMFA(authResponse)
+			selectedFactor := chooseMFA(authResponse)
 
-			authResponse, err = promptMFA(authResponse.Embedded.Factors[selectedFactorIndex], authResponse.StateToken)
+			authResponse, err = promptMFA(selectedFactor, authResponse.StateToken)
 
 			if err != nil {
 				return saml.LoginData{}, err
@@ -111,10 +111,44 @@ func GetLoginData() (saml.LoginData, error) {
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
 
-func chooseMFA(authResponse okta.OktaAuthResponse) int {
+func chooseMFA(authResponse okta.OktaAuthResponse) okta.AuthResponseFactor {
 	selectedFactorIndex := 0
+	providerAcceptable := false
+	typeAcceptable := false
 
-	if viper.GetString("okta.mfa_type") == "" || viper.GetString("okta.mfa_provider") == "" {
+	if viper.GetString("okta.mfa_type") != "" || viper.GetString("okta.mfa_provider") != "" {
+		for _, factor := range authResponse.Embedded.Factors {
+			for _, acceptableFactor := range acceptableAuthFactors {
+				if factor.FactorType == acceptableFactor && viper.GetString("okta.mfa_type") == acceptableFactor {
+					typeAcceptable = true
+
+					if factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
+						providerAcceptable = true
+						break
+					}
+				}
+			}
+		}
+
+		if !typeAcceptable {
+			fmt.Fprintf(os.Stderr, "Warning: %s is not an available MFA type\n", viper.GetString("okta.mfa_type"))
+		} else if !providerAcceptable {
+			fmt.Fprintf(os.Stderr, "Warning: %s is an unknown MFA provider\n", viper.GetString("okta.mfa_provider"))
+		}
+	}
+
+	if providerAcceptable && typeAcceptable {
+		for index, factor := range authResponse.Embedded.Factors {
+			for _, acceptableFactor := range acceptableAuthFactors {
+				if factor.FactorType == acceptableFactor {
+					if factor.FactorType == viper.GetString("okta.mfa_type") && factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
+						selectedFactorIndex = index
+						break
+					}
+				}
+			}
+		}
+	} else {
 		for index, factor := range authResponse.Embedded.Factors {
 			for _, acceptableFactor := range acceptableAuthFactors {
 				if factor.FactorType == acceptableFactor {
@@ -129,20 +163,9 @@ func chooseMFA(authResponse okta.OktaAuthResponse) int {
 		if factorIndexString != "" {
 			selectedFactorIndex, _ = strconv.Atoi(factorIndexString)
 		}
-	} else {
-		for index, factor := range authResponse.Embedded.Factors {
-			for _, acceptableFactor := range acceptableAuthFactors {
-				if factor.FactorType == acceptableFactor {
-					if factor.FactorType == viper.GetString("okta.mfa_type") && factor.Provider == viper.GetString("okta.mfa_provider") {
-						selectedFactorIndex = index
-						break
-					}
-				}
-			}
-		}
 	}
 
-	return selectedFactorIndex
+	return authResponse.Embedded.Factors[selectedFactorIndex]
 }
 
 func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuthResponse, error) {
