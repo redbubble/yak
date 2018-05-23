@@ -101,6 +101,8 @@ yak [flags] -- <role> <command --with-flags>
       --okta-aws-saml-endpoint string   The app embed path for the AWS app within Okta
       --okta-domain string              The domain to use for requests to Okta
   -u, --okta-username string            Your Okta username
+      --okta-mfa-type string            The Okta MFA type for login
+      --okta-mfa-provider string        The Okta MFA provider name for login
       --version                         Print the current version and exit
       --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
 ```
@@ -121,6 +123,10 @@ aws_saml_endpoint = "/home/<okta_app_name>/<generic_id>/<app_id>"
 
 # Optional. Your okta username.
 username = "<my_okta_username>"
+
+# Optional. Your okta MFA device type and provider so that you don't have to choose.
+mfa_type = "<mfa_type>"
+mfa_provider = "<mfa_provider>"
 ```
 
 ##### How to find your config values

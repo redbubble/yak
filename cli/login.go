@@ -163,6 +163,8 @@ func chooseMFA(authResponse okta.OktaAuthResponse) okta.AuthResponseFactor {
 		if factorIndexString != "" {
 			selectedFactorIndex, _ = strconv.Atoi(factorIndexString)
 		}
+
+		fmt.Fprintf(os.Stderr, "Set as default MFA device by adding mfa_type = %s and mfa_provider = %s in your config!\n", authResponse.Embedded.Factors[selectedFactorIndex].FactorType, authResponse.Embedded.Factors[selectedFactorIndex].Provider)
 	}
 
 	return authResponse.Embedded.Factors[selectedFactorIndex]
