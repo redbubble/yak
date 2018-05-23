@@ -17,7 +17,7 @@ import (
 	"github.com/redbubble/yak/saml"
 )
 
-const max_login_retries = 3
+const maxLoginRetries = 3
 
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	if viper.GetBool("cache.no_cache") {
@@ -114,7 +114,7 @@ func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuth
 	retries := 0
 	unauthorised := true
 
-	for unauthorised && (retries < max_login_retries) {
+	for unauthorised && (retries < maxLoginRetries) {
 		retries += 1
 
 		fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
@@ -122,7 +122,7 @@ func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuth
 
 		authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
 
-		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < max_login_retries {
+		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries {
 			fmt.Fprintln(os.Stderr, "Sorry, Try again.")
 		} else {
 			unauthorised = false
@@ -138,7 +138,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 	retries := 0
 	unauthorised := true
 
-	for unauthorised && (retries < max_login_retries) {
+	for unauthorised && (retries < maxLoginRetries) {
 		retries += 1
 		username := viper.GetString("okta.username")
 
@@ -152,7 +152,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 
 		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
 
-		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < max_login_retries {
+		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries {
 			fmt.Fprintln(os.Stderr, "Sorry, try again.")
 		} else {
 			unauthorised = false
