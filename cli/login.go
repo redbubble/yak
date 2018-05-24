@@ -23,6 +23,7 @@ const maxLoginRetries = 3
 var acceptableAuthFactors = [...]string{
 	"token:software:totp",
 	"token:hardware",
+	"push",
 }
 
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
@@ -118,6 +119,7 @@ func chooseMFA(authResponse okta.OktaAuthResponse) okta.AuthResponseFactor {
 
 	if viper.GetString("okta.mfa_type") != "" || viper.GetString("okta.mfa_provider") != "" {
 		for _, factor := range authResponse.Embedded.Factors {
+			print(factor.FactorType)
 			for _, acceptableFactor := range acceptableAuthFactors {
 				if factor.FactorType == acceptableFactor && viper.GetString("okta.mfa_type") == acceptableFactor {
 					typeAcceptable = true
@@ -177,12 +179,23 @@ func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuth
 	unauthorised := true
 
 	for unauthorised && (retries < maxLoginRetries) {
-		retries += 1
+		retries++
 
-		fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
-		passCode, _ := getLine()
-
-		authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
+		switch factor.FactorType {
+		case "push":
+			authResponse, err = okta.VerifyPush(factor.Links.VerifyLink.Href, okta.PushRequest{stateToken})
+		case "token:software:totp":
+			fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
+			passCode, _ := getLine()
+			authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
+		case "token:hardware":
+			fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
+			passCode, _ := getLine()
+			authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
+		default:
+			err := errors.New("Unknown factor type selected. Exiting.")
+			return authResponse, err
+		}
 
 		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries {
 			fmt.Fprintln(os.Stderr, "Sorry, Try again.")
@@ -201,7 +214,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 	unauthorised := true
 
 	for unauthorised && (retries < maxLoginRetries) {
-		retries += 1
+		retries++
 		username := viper.GetString("okta.username")
 
 		if username == "" {
