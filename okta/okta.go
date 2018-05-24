@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/html"
 )
@@ -23,12 +24,25 @@ type TotpRequest struct {
 	PassCode   string `json:"passCode"`
 }
 
+type PushRequest struct {
+	StateToken string `json:"stateToken"`
+}
+
 type OktaLink struct {
 	Href string `json:"href"`
 }
 
 type AuthResponseFactorLinks struct {
 	VerifyLink OktaLink `json:"verify"`
+}
+
+type PushRequestResponseLinks struct {
+	PollLink OktaLink `json:"next"`
+}
+
+type PushRequestResponse struct {
+	Links        PushRequestResponseLinks `json:"_links"`
+	FactorResult string                   `json:"factorResult"`
 }
 
 type AuthResponseFactor struct {
@@ -125,6 +139,67 @@ func VerifyTotp(url string, totpRequestBody TotpRequest) (OktaAuthResponse, erro
 	json.Unmarshal(body, &authResponse)
 
 	return authResponse, nil
+}
+
+func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, error) {
+	pushJson, err := json.Marshal(pushRequestBody)
+
+	if err != nil {
+		return OktaAuthResponse{YakStatusCode: YAK_STATUS_DATA_ERROR}, err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(pushJson))
+
+	if err != nil {
+		return OktaAuthResponse{YakStatusCode: YAK_STATUS_NET_ERROR}, err
+	} else if resp.StatusCode == 401 || resp.StatusCode == 403 {
+		return OktaAuthResponse{YakStatusCode: YAK_STATUS_UNAUTHORISED}, errors.New("Authentication failure (MFA invalid)")
+	} else if resp.StatusCode >= 300 {
+		return OktaAuthResponse{YakStatusCode: YAK_STATUS_NET_ERROR}, errors.New("MFA failed (" + resp.Status + ")")
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return OktaAuthResponse{YakStatusCode: YAK_STATUS_BAD_RESPONSE}, err
+	}
+
+	pushRequestResponse := PushRequestResponse{}
+	json.Unmarshal(body, &pushRequestResponse)
+
+	for {
+		resp, err := http.Post(pushRequestResponse.Links.PollLink.Href, "application/json", bytes.NewBuffer(pushJson))
+
+		if err != nil {
+			println(err)
+		}
+
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+
+		if err != nil {
+			println(err)
+		}
+
+		authResponse := OktaAuthResponse{}
+		json.Unmarshal(body, &authResponse)
+
+		if authResponse.Status != "MFA_CHALLENGE" {
+			if authResponse.Status == "SUCCESS" {
+				authResponse.YakStatusCode = YAK_STATUS_OK
+				return authResponse, nil
+			} else {
+				authResponse.YakStatusCode = YAK_STATUS_BAD_RESPONSE
+				err := errors.New("Bad status response from Okta API")
+				return authResponse, err
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthResponse) (string, error) {
