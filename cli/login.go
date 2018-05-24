@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -18,6 +19,11 @@ import (
 )
 
 const maxLoginRetries = 3
+
+var acceptableAuthFactors = [...]string{
+	"token:software:totp",
+	"token:hardware",
+}
 
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	if viper.GetBool("cache.no_cache") {
@@ -74,12 +80,9 @@ func GetLoginData() (saml.LoginData, error) {
 		}
 
 		for authResponse.Status == "MFA_REQUIRED" {
-			for _, factor := range authResponse.Embedded.Factors {
-				if factor.FactorType == "token:software:totp" {
-					authResponse, err = promptMFA(factor, authResponse.StateToken)
-					break
-				}
-			}
+			selectedFactor := chooseMFA(authResponse)
+
+			authResponse, err = promptMFA(selectedFactor, authResponse.StateToken)
 
 			if err != nil {
 				return saml.LoginData{}, err
@@ -106,6 +109,65 @@ func GetLoginData() (saml.LoginData, error) {
 	}
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
+}
+
+func chooseMFA(authResponse okta.OktaAuthResponse) okta.AuthResponseFactor {
+	selectedFactorIndex := 0
+	providerAcceptable := false
+	typeAcceptable := false
+
+	if viper.GetString("okta.mfa_type") != "" || viper.GetString("okta.mfa_provider") != "" {
+		for _, factor := range authResponse.Embedded.Factors {
+			for _, acceptableFactor := range acceptableAuthFactors {
+				if factor.FactorType == acceptableFactor && viper.GetString("okta.mfa_type") == acceptableFactor {
+					typeAcceptable = true
+
+					if factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
+						providerAcceptable = true
+						break
+					}
+				}
+			}
+		}
+
+		if !typeAcceptable {
+			fmt.Fprintf(os.Stderr, "Warning: %s is not an available MFA type\n", viper.GetString("okta.mfa_type"))
+		} else if !providerAcceptable {
+			fmt.Fprintf(os.Stderr, "Warning: %s is an unknown MFA provider\n", viper.GetString("okta.mfa_provider"))
+		}
+	}
+
+	if providerAcceptable && typeAcceptable {
+		for index, factor := range authResponse.Embedded.Factors {
+			for _, acceptableFactor := range acceptableAuthFactors {
+				if factor.FactorType == acceptableFactor {
+					if factor.FactorType == viper.GetString("okta.mfa_type") && factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
+						selectedFactorIndex = index
+						break
+					}
+				}
+			}
+		}
+	} else {
+		for index, factor := range authResponse.Embedded.Factors {
+			for _, acceptableFactor := range acceptableAuthFactors {
+				if factor.FactorType == acceptableFactor {
+					fmt.Fprintf(os.Stderr, "[%d] %s (%s)\n", index, factor.FactorType, factor.Provider)
+				}
+			}
+		}
+
+		fmt.Fprint(os.Stderr, "Choose MFA (0): ")
+		factorIndexString, _ := getLine()
+
+		if factorIndexString != "" {
+			selectedFactorIndex, _ = strconv.Atoi(factorIndexString)
+		}
+
+		fmt.Fprintf(os.Stderr, "Set as default MFA device by adding mfa_type = %s and mfa_provider = %s in your config!\n", authResponse.Embedded.Factors[selectedFactorIndex].FactorType, authResponse.Embedded.Factors[selectedFactorIndex].Provider)
+	}
+
+	return authResponse.Embedded.Factors[selectedFactorIndex]
 }
 
 func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuthResponse, error) {
@@ -185,8 +247,8 @@ func getPassword() (string, error) {
 
 func getLine() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
-	username, err := reader.ReadString('\n')
-	username = strings.Replace(username, "\n", "", -1)
+	input, err := reader.ReadString('\n')
+	input = strings.Replace(input, "\n", "", -1)
 
-	return username, err
+	return input, err
 }
