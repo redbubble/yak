@@ -125,6 +125,8 @@ aws_saml_endpoint = "/home/<okta_app_name>/<generic_id>/<app_id>"
 username = "<my_okta_username>"
 
 # Optional. Your okta MFA device type and provider so that you don't have to choose.
+# Yak supports the following values for mfa_type: token:software:totp, token:hardware or push
+# For a full list of Okta-supported factors and providers see [this page](https://developer.okta.com/docs/api/resources/factors#supported-factors-for-providers)
 mfa_type = "<mfa_type>"
 mfa_provider = "<mfa_provider>"
 ```
