@@ -81,7 +81,11 @@ func GetLoginData() (saml.LoginData, error) {
 		}
 
 		for authResponse.Status == "MFA_REQUIRED" {
-			selectedFactor := chooseMFA(authResponse)
+			selectedFactor, err := chooseMFA(authResponse)
+
+			if err != nil {
+				return saml.LoginData{}, err
+			}
 
 			authResponse, err = promptMFA(selectedFactor, authResponse.StateToken)
 
@@ -112,64 +116,86 @@ func GetLoginData() (saml.LoginData, error) {
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
 
-func chooseMFA(authResponse okta.OktaAuthResponse) okta.AuthResponseFactor {
-	selectedFactorIndex := 0
+func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, error) {
+	acceptableFactors := getAcceptableFactors(authResponse.Embedded.Factors)
+
+	if len(acceptableFactors) == 0 {
+		return okta.AuthResponseFactor{}, errors.New("No usable MFA factors found, but MFA was requested. Aborting.")
+	}
+
+	factor, gotFactor := getConfiguredMFAFactor(acceptableFactors)
+
+	if gotFactor {
+		return factor, nil
+	} else if len(acceptableFactors) > 1 {
+		for index, factor := range acceptableFactors {
+			fmt.Fprintf(os.Stderr, "[%d] %s (%s)\n", index, factor.FactorType, factor.Provider)
+		}
+
+		fmt.Fprint(os.Stderr, "Select an MFA factor (0): ")
+		factorIndexString, _ := getLine()
+
+		if factorIndexString != "" {
+			factorIndex, _ := strconv.Atoi(factorIndexString)
+			factor = acceptableFactors[factorIndex]
+
+			fmt.Fprintf(os.Stderr, "Set as default MFA factor by adding mfa_type = %s and mfa_provider = %s in your config!\n", factor.FactorType, factor.Provider)
+
+			return factor, nil
+		}
+	}
+
+	// If no factor is chosen by this point, take the first acceptable factor
+	return acceptableFactors[0], nil
+}
+
+func getAcceptableFactors(factors []okta.AuthResponseFactor) []okta.AuthResponseFactor {
+	acceptableFactors := []okta.AuthResponseFactor{}
+
+	for _, factor := range factors {
+		if factorAcceptable(factor) {
+			acceptableFactors = append(acceptableFactors, factor)
+		}
+	}
+
+	return acceptableFactors
+}
+
+func factorAcceptable(factor okta.AuthResponseFactor) bool {
+	for _, acceptableFactor := range acceptableAuthFactors {
+		if factor.FactorType == acceptableFactor {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getConfiguredMFAFactor(factors []okta.AuthResponseFactor) (okta.AuthResponseFactor, bool) {
 	providerAcceptable := false
 	typeAcceptable := false
 
 	if viper.GetString("okta.mfa_type") != "" || viper.GetString("okta.mfa_provider") != "" {
-		for _, factor := range authResponse.Embedded.Factors {
+		for _, factor := range factors {
 			print(factor.FactorType)
-			for _, acceptableFactor := range acceptableAuthFactors {
-				if factor.FactorType == acceptableFactor && viper.GetString("okta.mfa_type") == acceptableFactor {
-					typeAcceptable = true
+			if factor.FactorType == viper.GetString("okta.mfa_type") {
+				typeAcceptable = true
 
-					if factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
-						providerAcceptable = true
-						break
-					}
+				if factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
+					providerAcceptable = true
+					return factor, true
 				}
 			}
 		}
 
 		if !typeAcceptable {
-			fmt.Fprintf(os.Stderr, "Warning: %s is not an available MFA type\n", viper.GetString("okta.mfa_type"))
+			fmt.Fprintf(os.Stderr, "Warning: no factors of type '%s' available\n", viper.GetString("okta.mfa_type"))
 		} else if !providerAcceptable {
-			fmt.Fprintf(os.Stderr, "Warning: %s is an unknown MFA provider\n", viper.GetString("okta.mfa_provider"))
+			fmt.Fprintf(os.Stderr, "Warning: no factors from provider %s available\n", viper.GetString("okta.mfa_provider"))
 		}
 	}
 
-	if providerAcceptable && typeAcceptable {
-		for index, factor := range authResponse.Embedded.Factors {
-			for _, acceptableFactor := range acceptableAuthFactors {
-				if factor.FactorType == acceptableFactor {
-					if factor.FactorType == viper.GetString("okta.mfa_type") && factor.Provider == strings.ToUpper(viper.GetString("okta.mfa_provider")) {
-						selectedFactorIndex = index
-						break
-					}
-				}
-			}
-		}
-	} else {
-		for index, factor := range authResponse.Embedded.Factors {
-			for _, acceptableFactor := range acceptableAuthFactors {
-				if factor.FactorType == acceptableFactor {
-					fmt.Fprintf(os.Stderr, "[%d] %s (%s)\n", index, factor.FactorType, factor.Provider)
-				}
-			}
-		}
-
-		fmt.Fprint(os.Stderr, "Choose MFA (0): ")
-		factorIndexString, _ := getLine()
-
-		if factorIndexString != "" {
-			selectedFactorIndex, _ = strconv.Atoi(factorIndexString)
-		}
-
-		fmt.Fprintf(os.Stderr, "Set as default MFA device by adding mfa_type = %s and mfa_provider = %s in your config!\n", authResponse.Embedded.Factors[selectedFactorIndex].FactorType, authResponse.Embedded.Factors[selectedFactorIndex].Provider)
-	}
-
-	return authResponse.Embedded.Factors[selectedFactorIndex]
+	return okta.AuthResponseFactor{}, false
 }
 
 func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuthResponse, error) {
