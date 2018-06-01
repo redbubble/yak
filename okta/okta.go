@@ -138,7 +138,7 @@ func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, erro
 	pushRequestResponse := PushRequestResponse{}
 	json.Unmarshal(body, &pushRequestResponse)
 
-	errorsRemaining := 3
+	errorsRemaining := 6
 	fmt.Fprintf(os.Stderr, "Waiting for MFA response")
 	for {
 		body, yakStatus, err := makeRequest(pushRequestResponse.Links.PollLink.Href, bytes.NewBuffer(pushJson))
@@ -151,6 +151,7 @@ func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, erro
 				fmt.Fprintf(os.Stderr, "\nToo many network errors, aborting...")
 				return authResponse, err
 			}
+			continue
 		}
 
 		json.Unmarshal(body, &authResponse)
@@ -163,7 +164,7 @@ func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, erro
 
 			fmt.Fprintf(os.Stderr, "\n")
 			authResponse.YakStatusCode = YAK_STATUS_BAD_RESPONSE
-			return authResponse, errors.New("Bad status response from Okta API")
+			return authResponse, errors.New("Bad status from Okta API: " + authResponse.Status)
 		}
 
 		fmt.Fprintf(os.Stderr, ".")
@@ -243,6 +244,7 @@ func makeRequest(url string, body io.Reader) ([]byte, int, error) {
 	}
 
 	defer resp.Body.Close()
+
 	responseBody, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
