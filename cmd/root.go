@@ -64,7 +64,7 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		if viper.GetBool("list-roles") {
 			err = listRolesCmd(cmd, args)
 		} else if len(args) == 1 {
-			err = printVarsCmd(cmd, args)
+			err = printCredentialsCmd(cmd, args)
 		} else if len(args) > 1 {
 			err = shimCmd(cmd, args)
 		} else {

@@ -9,7 +9,7 @@ import (
 	"github.com/redbubble/yak/cli"
 )
 
-func printVarsCmd(cmd *cobra.Command, args []string) error {
+func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 	roleName := cli.ResolveRole(args[0])
 
 	creds := cli.AssumeRoleFromCache(roleName)
