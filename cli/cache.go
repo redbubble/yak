@@ -14,3 +14,9 @@ func CacheCredentials(roleName string, creds *sts.AssumeRoleWithSAMLOutput) {
 
 	cache.WriteDefault(roleName, creds)
 }
+
+func WriteCache() {
+	if !viper.GetBool("cache.no_cache") {
+		cache.Export()
+	}
+}
