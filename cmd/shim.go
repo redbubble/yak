@@ -28,6 +28,7 @@ func shimCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		cli.CacheCredentials(roleName, creds)
+		cli.WriteCache()
 	}
 
 	return cli.Exec(

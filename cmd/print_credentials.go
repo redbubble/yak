@@ -30,6 +30,7 @@ func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		cli.CacheCredentials(roleName, creds)
+		cli.WriteCache()
 	}
 
 	output, err := format.Credentials(viper.GetString("output.format"), creds)

@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/format"
 )
 
@@ -63,7 +62,6 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-channel
-			writeCache()
 			fmt.Fprintln(os.Stderr, "Recieved termination signal, exiting...")
 			os.Exit(1)
 		}()
@@ -77,8 +75,6 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		} else {
 			cmd.Help()
 		}
-
-		writeCache()
 
 		return err
 	},
@@ -216,12 +212,6 @@ func Execute() {
 			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
-	}
-}
-
-func writeCache() {
-	if !viper.GetBool("cache.no_cache") {
-		cache.Export()
 	}
 }
 

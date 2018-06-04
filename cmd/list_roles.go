@@ -20,6 +20,7 @@ func listRolesCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		cli.CacheLoginRoles(loginData.Roles)
+		cli.WriteCache()
 
 		roles = (loginData.Roles)
 	}
