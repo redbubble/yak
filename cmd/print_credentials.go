@@ -4,18 +4,18 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	"github.com/redbubble/yak/aws"
 	"github.com/redbubble/yak/cli"
+	"github.com/redbubble/yak/format"
 )
 
-func printVarsCmd(cmd *cobra.Command, args []string) error {
+func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 	roleName := cli.ResolveRole(args[0])
 
 	creds := cli.AssumeRoleFromCache(roleName)
 
 	if creds == nil {
-
 		loginData, err := cli.GetLoginData()
 
 		if err != nil {
@@ -32,9 +32,13 @@ func printVarsCmd(cmd *cobra.Command, args []string) error {
 		cli.CacheCredentials(roleName, creds)
 	}
 
-	for key, value := range aws.EnvironmentVariables(creds.Credentials) {
-		fmt.Printf("export %s=%s\n", key, value)
+	output, err := format.Credentials(viper.GetString("output.format"), creds)
+
+	if err != nil {
+		return err
 	}
+
+	fmt.Print(output)
 
 	return nil
 }

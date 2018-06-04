@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/redbubble/yak/cache"
+	"github.com/redbubble/yak/format"
 )
 
 var rootCmd = &cobra.Command{
@@ -34,6 +35,8 @@ var rootCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+
 		if viper.GetBool("version") {
 			versionCmd()
 			return nil
@@ -50,7 +53,11 @@ var rootCmd = &cobra.Command{
 These can be configured either in the [okta] section of ~/.config/yak/config.toml or by passing the --okta-domain and --okta-aws-saml-endpoint arguments.`)
 		}
 
-		var err error
+		// If the output format is invalid, exit here to provide consistent UX across all commands
+		err = format.ValidateOutputFormat(viper.GetString("output.format"))
+		if err != nil {
+			return err
+		}
 
 		channel := make(chan os.Signal, 2)
 		signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
@@ -64,7 +71,7 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		if viper.GetBool("list-roles") {
 			err = listRolesCmd(cmd, args)
 		} else if len(args) == 1 {
-			err = printVarsCmd(cmd, args)
+			err = printCredentialsCmd(cmd, args)
 		} else if len(args) > 1 {
 			err = shimCmd(cmd, args)
 		} else {
@@ -93,6 +100,7 @@ func init() {
 	rootCmd.PersistentFlags().String("okta-aws-saml-endpoint", "", "The app embed path for the AWS app within Okta")
 	rootCmd.PersistentFlags().String("okta-mfa-type", "", "The Okta MFA type for login")
 	rootCmd.PersistentFlags().String("okta-mfa-provider", "", "The Okta MFA provider name for login")
+	rootCmd.PersistentFlags().StringP("output-format", "o", "", "Can be set to either 'json' or 'env'. The format in which to output credential data")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
@@ -104,6 +112,7 @@ func init() {
 	viper.BindPFlag("aws.session_duration", rootCmd.PersistentFlags().Lookup("aws-session-duration"))
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
+	viper.BindPFlag("output.format", rootCmd.PersistentFlags().Lookup("output-format"))
 }
 
 func versionCmd() {
@@ -188,6 +197,7 @@ func getConfigPath() string {
 
 func defaultConfigValues() {
 	viper.SetDefault("aws.session_duration", 3600)
+	viper.SetDefault("output.format", "env")
 }
 
 func Execute() {
