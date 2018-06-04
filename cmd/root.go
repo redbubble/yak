@@ -31,7 +31,8 @@ var rootCmd = &cobra.Command{
     credentials will conveniently be printed stdout.
 
     Note that if you want to pass -/-- flags to your <subcommand>,
-    you'll need to put a '--' separator before the <role> so yak`,
+    you'll need to put a '--' separator before the <role> so yak
+    knows not to interpret those arguments for itself`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,6 +48,11 @@ var rootCmd = &cobra.Command{
 			return errors.New("Please don't use --cache-only and --no-cache simultaneously.")
 		}
 
+		// Likewise, it doesn't make much sense to clear the cache if --no-cache was specified too
+		if viper.GetBool("cache.no_cache") && viper.GetBool("clear-cache") {
+			return errors.New("Please don't use --no-cache and --clear-cache simultaneously.")
+		}
+
 		// If we've made it to this point, we need to have an Okta domain and an AWS path
 		if viper.GetString("okta.domain") == "" || viper.GetString("okta.aws_saml_endpoint") == "" {
 			return errors.New(`An Okta domain and an AWS SAML Endpoint must be configured for yak to work.
@@ -57,6 +63,14 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		err = format.ValidateOutputFormat(viper.GetString("output.format"))
 		if err != nil {
 			return err
+		}
+
+		if viper.GetBool("clear-cache") {
+			clearCache()
+
+			if !viper.GetBool("list-roles") && len(args) == 0 {
+				return nil
+			}
 		}
 
 		channel := make(chan os.Signal, 2)
@@ -91,8 +105,10 @@ func init() {
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "Display this help message and exit")
 	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List available AWS roles and exit")
+	rootCmd.PersistentFlags().Bool("clear-cache", false, "Delete all data from yak's cache. If no other arguments are given, exit without error")
 	rootCmd.PersistentFlags().Bool("version", false, "Print the current version and exit")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
+	viper.BindPFlag("clear-cache", rootCmd.PersistentFlags().Lookup("clear-cache"))
 	viper.BindPFlag("version", rootCmd.PersistentFlags().Lookup("version"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
@@ -127,7 +143,11 @@ IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
 }
 
 func initCache() {
-	viper.SetDefault("cache.file_location", path.Join(getDataPath(), "cache"))
+	viper.SetDefault("cache.file_location", path.Join(getCacheBasePath(), "cache"))
+}
+
+func clearCache() {
+	os.Remove(viper.GetString("cache.file_location"))
 }
 
 func initConfig() {
@@ -138,7 +158,7 @@ func initConfig() {
 	viper.ReadInConfig()
 }
 
-func getDataPath() string {
+func getCacheBasePath() string {
 	dataPath := os.Getenv("XDG_CACHE_HOME")
 
 	if dataPath == "" {
