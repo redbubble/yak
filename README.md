@@ -95,14 +95,16 @@ yak [flags] -- <role> <command --with-flags>
 ```
   -d, --aws-session-duration int        The session duration to request from AWS (in seconds)
       --cache-only                      Only use cache, do not make external requests. Mutually exclusive with --no-cache
+      --clear-cache                     Delete all data from yak's cache. If no other arguments are given, exit without error
   -h, --help                            Display this help message and exit
   -l, --list-roles                      List available AWS roles and exit
       --no-cache                        Ignore cache for this request. Mutually exclusive with --cache-only
       --okta-aws-saml-endpoint string   The app embed path for the AWS app within Okta
       --okta-domain string              The domain to use for requests to Okta
-  -u, --okta-username string            Your Okta username
-      --okta-mfa-type string            The Okta MFA type for login
       --okta-mfa-provider string        The Okta MFA provider name for login
+      --okta-mfa-type string            The Okta MFA type for login
+  -u, --okta-username string            Your Okta username
+  -o, --output-format string            Can be set to either 'json' or 'env'. The format in which to output credential data
       --version                         Print the current version and exit
       --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
 ```
