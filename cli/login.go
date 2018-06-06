@@ -285,9 +285,8 @@ func getPassword() (string, error) {
 }
 
 func getLine() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	input, err := reader.ReadString('\n')
-	input = strings.Replace(input, "\n", "", -1)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
 
-	return input, err
+	return scanner.Text(), scanner.Err()
 }
