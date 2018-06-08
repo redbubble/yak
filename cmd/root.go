@@ -76,7 +76,7 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-channel
-			fmt.Fprintln(os.Stderr, "Recieved termination signal, exiting...")
+			fmt.Fprintln(os.Stderr, "Received termination signal, exiting...")
 			os.Exit(1)
 		}()
 
