@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/redbubble/yak/format"
 )
@@ -72,11 +73,16 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 			}
 		}
 
+		state, stateErr := terminal.GetState(int(syscall.Stdin))
 		channel := make(chan os.Signal, 2)
 		signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-channel
 			fmt.Fprintln(os.Stderr, "Received termination signal, exiting...")
+			if(stateErr == nil) {
+				terminal.Restore(int(syscall.Stdin), state)
+			}
+
 			os.Exit(1)
 		}()
 
