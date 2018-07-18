@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
@@ -278,6 +279,17 @@ func CacheLoginRoles(roles []saml.LoginRole) {
 }
 
 func getPassword() (string, error) {
+	state, _ := terminal.GetState(int(syscall.Stdin))
+
+	/* This fixes an issue in bash where characters would stop echoing to the terminal at all if SIGINT was received
+     * during the password prompt */
+	channel := make(chan os.Signal, 2)
+	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-channel
+		terminal.Restore(int(syscall.Stdin), state)
+	}()
+
 	bytes, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Fprint(os.Stderr, "\n")
 
