@@ -109,6 +109,19 @@ yak [flags] -- <role> <command --with-flags>
       --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
 ```
 
+#### Environment Variables
+
+| Variable        | Effect                                                                                     |
+|-----------------|--------------------------------------------------------------------------------------------|
+| `OKTA_PASSWORD` | The value set in this variable will be passed to Okta as the 'password' component of login |
+
+Please note that setting the `OKTA_PASSWORD` variable in plain text, especially on the command-line, is not a good idea
+from a security perspective. A suggested mode of use for this variable would be something like:
+
+```
+OKTA_PASSWORD=$(get-password-from-password-manager) yak ...
+```
+
 ### Configuring
 
 Yak can be configured with a configuration file at  `~/.config/yak/config.toml` (`~/.yak/config.toml` is also supported).

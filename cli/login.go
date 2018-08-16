@@ -242,18 +242,23 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 	for unauthorised && (retries < maxLoginRetries) {
 		retries++
 		username := viper.GetString("okta.username")
+		// Viper isn't used here because it's really hard to get Viper to not accept values through the config file
+		password := os.Getenv("OKTA_PASSWORD")
+		envPassword := (password != "")
 
 		if username == "" {
 			fmt.Fprint(os.Stderr, "Okta username: ")
 			username, _ = getLine()
 		}
 
-		fmt.Fprint(os.Stderr, "Okta password: ")
-		password, _ := getPassword()
+		if password == "" {
+			fmt.Fprint(os.Stderr, "Okta password: ")
+			password, _ = getPassword()
+		}
 
 		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
 
-		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries {
+		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries && !envPassword {
 			fmt.Fprintln(os.Stderr, "Sorry, try again.")
 		} else {
 			unauthorised = false
