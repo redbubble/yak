@@ -248,12 +248,20 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 
 		if username == "" {
 			fmt.Fprint(os.Stderr, "Okta username: ")
-			username, _ = getLine()
+			username, err = getLine()
+
+			if err != nil {
+				return authResponse, err
+			}
 		}
 
 		if password == "" {
 			fmt.Fprint(os.Stderr, "Okta password: ")
-			password, _ = getPassword()
+			password, err = getPassword()
+
+			if err != nil {
+				return authResponse, err
+			}
 		}
 
 		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
