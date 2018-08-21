@@ -128,21 +128,39 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 	if gotFactor {
 		return factor, nil
 	} else if len(acceptableFactors) > 1 {
+		var factorIndex int
+		validIndex := false
+		maxIndex := len(acceptableFactors) - 1
+
 		for index, factor := range acceptableFactors {
 			fmt.Fprintf(os.Stderr, "[%d] %s (%s)\n", index, factor.FactorType, factor.Provider)
 		}
 
-		fmt.Fprint(os.Stderr, "Select an MFA factor (0): ")
-		factorIndexString, _ := getLine()
+		for !validIndex {
+			fmt.Fprint(os.Stderr, "Select an MFA factor (0): ")
+			factorIndexString, err := getLine()
 
-		if factorIndexString != "" {
-			factorIndex, _ := strconv.Atoi(factorIndexString)
+			if err != nil {
+				return factor, err
+			}
+
+			if factorIndexString == "" {
+				factorIndex = 0
+			} else {
+				factorIndex, err = strconv.Atoi(factorIndexString)
+
+				if err != nil || factorIndex > maxIndex || factorIndex < 0 {
+					fmt.Fprintf(os.Stderr, "Please enter a number between 0 and %d\n", maxIndex)
+					continue
+				}
+			}
+
 			factor = acceptableFactors[factorIndex]
-
-			fmt.Fprintf(os.Stderr, "Set as default MFA factor by adding mfa_type = %s and mfa_provider = %s in your config!\n", factor.FactorType, factor.Provider)
-
-			return factor, nil
+			validIndex = true
 		}
+
+		fmt.Fprintf(os.Stderr, "Set as default MFA factor by adding mfa_type = %s and mfa_provider = %s in your config!\n", factor.FactorType, factor.Provider)
+		return factor, nil
 	}
 
 	// If no factor is chosen by this point, take the first acceptable factor
