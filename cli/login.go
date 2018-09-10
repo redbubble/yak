@@ -260,11 +260,13 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 	for unauthorised && (retries < maxLoginRetries) {
 		retries++
 		username := viper.GetString("okta.username")
+		promptUsername := (username == "")
+
 		// Viper isn't used here because it's really hard to get Viper to not accept values through the config file
 		password := os.Getenv("OKTA_PASSWORD")
 		envPassword := (password != "")
 
-		if username == "" {
+		if promptUsername {
 			fmt.Fprint(os.Stderr, "Okta username: ")
 			username, err = getLine()
 
@@ -274,7 +276,12 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 		}
 
 		if password == "" {
-			fmt.Fprint(os.Stderr, "Okta password: ")
+			prompt := "Okta password"
+			if !promptUsername {
+				prompt = prompt + " (" + username + ")"
+			}
+
+			fmt.Fprintf(os.Stderr, "%s: ", prompt)
 			password, err = getPassword()
 
 			if err != nil {
