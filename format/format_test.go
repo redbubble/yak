@@ -3,6 +3,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -23,41 +24,77 @@ var creds sts.AssumeRoleWithSAMLOutput = sts.AssumeRoleWithSAMLOutput{
 	Credentials: &innerCreds,
 }
 
-func TestEnvCredentials(t *testing.T) {
-	expectedLines := []string{
-		fmt.Sprintf(`export AWS_ACCESS_KEY_ID=%s`, accessKeyId),
-		fmt.Sprintf(`export AWS_SECRET_ACCESS_KEY=%s`, secretAccessKey),
-		fmt.Sprintf(`export AWS_SESSION_TOKEN=%s`, sessionToken),
+func TestDefaultEnvCredentials(t *testing.T) {
+	scenarios := []struct {
+		shellName     string
+		expectedLines []string
+		setUp         func()
+		tearDown      func()
+	}{
+		{
+			shellName: "default shell",
+			expectedLines: []string{
+				fmt.Sprintf(`export AWS_ACCESS_KEY_ID=%s`, accessKeyId),
+				fmt.Sprintf(`export AWS_SECRET_ACCESS_KEY=%s`, secretAccessKey),
+				fmt.Sprintf(`export AWS_SESSION_TOKEN=%s`, sessionToken),
+			},
+			setUp: func() {
+				os.Unsetenv("PSModulePath")
+			},
+			tearDown: func() {},
+		},
+		{
+			shellName: "PowerShell",
+			expectedLines: []string{
+				fmt.Sprintf(`$env:AWS_ACCESS_KEY_ID = "%s"`, accessKeyId),
+				fmt.Sprintf(`$env:AWS_SECRET_ACCESS_KEY = "%s"`, secretAccessKey),
+				fmt.Sprintf(`$env:AWS_SESSION_TOKEN = "%s"`, sessionToken),
+			},
+			setUp: func() {
+				os.Setenv("PSModulePath", "something")
+			},
+			tearDown: func() {
+				os.Unsetenv("PSModulePath")
+			},
+		},
 	}
 
-	text, err := Credentials("env", &creds)
+	for _, scenario := range scenarios {
 
-	if err != nil {
-		t.Log("---------------")
-		t.Log("Got an error formatting as \"env\"")
-		t.Logf("Error: %v", err)
-		t.Fail()
-	}
+		t.Run(fmt.Sprintf("should output environment variables correctly for %s", scenario.shellName), func(t *testing.T) {
+			scenario.setUp()
+			defer scenario.tearDown()
 
-	lines := strings.Split(text, "\n")
+			text, err := Credentials("env", &creds)
 
-	for _, expectedLine := range expectedLines {
-		ok := false
-		for _, line := range lines {
-			if line == expectedLine {
-				ok = true
-				break
+			if err != nil {
+				t.Log("---------------")
+				t.Logf("Got an error formatting as \"env\" for %s", scenario.shellName)
+				t.Logf("Error: %v", err)
+				t.Fail()
 			}
-		}
 
-		if !ok {
-			t.Log("---------------")
-			t.Log("Failed to format credentials as \"env\"")
-			t.Logf("Expected content: %v", expectedLines)
-			t.Logf("Actual content: %v", lines)
-			t.Fail()
-			break
-		}
+			lines := strings.Split(text, "\n")
+
+			for _, expectedLine := range scenario.expectedLines {
+				ok := false
+				for _, line := range lines {
+					if line == expectedLine {
+						ok = true
+						break
+					}
+				}
+
+				if !ok {
+					t.Log("---------------")
+					t.Logf("Failed to format credentials as \"env\" for %s", scenario.shellName)
+					t.Logf("Expected content: %v", scenario.expectedLines)
+					t.Logf("Actual content: %v", lines)
+					t.Fail()
+					break
+				}
+			}
+		})
 	}
 }
 
