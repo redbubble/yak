@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 
@@ -19,8 +20,15 @@ var outputFormatters map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, err
 	"env": func(creds *sts.AssumeRoleWithSAMLOutput) (string, error) {
 		output := bytes.Buffer{}
 
+		var outputFormat string
+		if isPowerShell() {
+			outputFormat = "$env:%s = \"%s\"\n"
+		} else {
+			outputFormat = "export %s=%s\n"
+		}
+
 		for key, value := range aws.EnvironmentVariables(creds.Credentials) {
-			output.WriteString(fmt.Sprintf("export %s=%s\n", key, value))
+			output.WriteString(fmt.Sprintf(outputFormat, key, value))
 		}
 
 		return output.String(), nil
@@ -37,6 +45,11 @@ func ValidateOutputFormat(format string) error {
 	}
 
 	return fmt.Errorf("Invalid output format '%s' specified. Valid output formats: %v", format, validOutputFormats())
+}
+
+func isPowerShell() bool {
+	_, ok := os.LookupEnv("PSModulePath")
+	return ok
 }
 
 func validOutputFormat(format string) bool {
