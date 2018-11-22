@@ -79,7 +79,7 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 		go func() {
 			<-channel
 			fmt.Fprintln(os.Stderr, "Received termination signal, exiting...")
-			if(stateErr == nil) {
+			if stateErr == nil {
 				terminal.Restore(int(syscall.Stdin), state)
 			}
 
