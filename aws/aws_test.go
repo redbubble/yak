@@ -9,11 +9,17 @@ func TestEnvironmentVariables(t *testing.T) {
 	accessKeyId := "llama"
 	secretAccessKey := "alpaca"
 	sessionToken := "guanaco"
+	assumedRoleArn := "arn:aws:iam::1234123123:role/sso-vicuña-role"
 
-	creds := sts.Credentials{
-		AccessKeyId:     &accessKeyId,
-		SecretAccessKey: &secretAccessKey,
-		SessionToken:    &sessionToken,
+	creds := sts.AssumeRoleWithSAMLOutput{
+		AssumedRoleUser: &sts.AssumedRoleUser{
+			Arn: &assumedRoleArn,
+		},
+		Credentials: &sts.Credentials{
+			AccessKeyId:     &accessKeyId,
+			SecretAccessKey: &secretAccessKey,
+			SessionToken:    &sessionToken,
+		},
 	}
 
 	subject := EnvironmentVariables(&creds)
@@ -39,6 +45,14 @@ func TestEnvironmentVariables(t *testing.T) {
 		t.Log("Did not correctly set AWS_SESSION_TOKEN")
 		t.Logf("Expected: %s", sessionToken)
 		t.Logf("Got: %s", subject["AWS_SESSION_TOKEN"])
+		t.Fail()
+	}
+
+	if subject["AWS_METADATA_USER_ARN"] != assumedRoleArn {
+		t.Log("---------------")
+		t.Log("Did not correctly set AWS_METADATA_USER_ARN")
+		t.Logf("Expected: %s", assumedRoleArn)
+		t.Logf("Got: %s", subject["AWS_METADATA_USER_ARN"])
 		t.Fail()
 	}
 }

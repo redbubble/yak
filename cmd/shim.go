@@ -34,7 +34,7 @@ func shimCmd(cmd *cobra.Command, args []string) error {
 	return cli.Exec(
 		command,
 		cli.EnrichedEnvironment(
-			aws.EnvironmentVariables(creds.Credentials),
+			aws.EnvironmentVariables(creds),
 		),
 	)
 }

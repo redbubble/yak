@@ -27,7 +27,7 @@ var outputFormatters map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, err
 			outputFormat = "export %s=%s\n"
 		}
 
-		for key, value := range aws.EnvironmentVariables(creds.Credentials) {
+		for key, value := range aws.EnvironmentVariables(creds) {
 			output.WriteString(fmt.Sprintf(outputFormat, key, value))
 		}
 
