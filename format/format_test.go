@@ -13,6 +13,7 @@ import (
 var accessKeyId string = "llama"
 var secretAccessKey string = "alpaca"
 var sessionToken string = "guanaco"
+var assumedRoleArn string = "arn:aws:iam::1234123123:role/sso-vicuña-role"
 
 var innerCreds sts.Credentials = sts.Credentials{
 	AccessKeyId:     &accessKeyId,
@@ -21,6 +22,9 @@ var innerCreds sts.Credentials = sts.Credentials{
 }
 
 var creds sts.AssumeRoleWithSAMLOutput = sts.AssumeRoleWithSAMLOutput{
+	AssumedRoleUser: &sts.AssumedRoleUser{
+		Arn: &assumedRoleArn,
+	},
 	Credentials: &innerCreds,
 }
 
@@ -37,6 +41,7 @@ func TestDefaultEnvCredentials(t *testing.T) {
 				fmt.Sprintf(`export AWS_ACCESS_KEY_ID=%s`, accessKeyId),
 				fmt.Sprintf(`export AWS_SECRET_ACCESS_KEY=%s`, secretAccessKey),
 				fmt.Sprintf(`export AWS_SESSION_TOKEN=%s`, sessionToken),
+				fmt.Sprintf(`export AWS_METADATA_USER_ARN=%s`, assumedRoleArn),
 			},
 			setUp: func() {
 				os.Unsetenv("PSModulePath")
@@ -49,6 +54,7 @@ func TestDefaultEnvCredentials(t *testing.T) {
 				fmt.Sprintf(`$env:AWS_ACCESS_KEY_ID = "%s"`, accessKeyId),
 				fmt.Sprintf(`$env:AWS_SECRET_ACCESS_KEY = "%s"`, secretAccessKey),
 				fmt.Sprintf(`$env:AWS_SESSION_TOKEN = "%s"`, sessionToken),
+				fmt.Sprintf(`$env:AWS_METADATA_USER_ARN = "%s"`, assumedRoleArn),
 			},
 			setUp: func() {
 				os.Setenv("PSModulePath", "something")
