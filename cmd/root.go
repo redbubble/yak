@@ -155,7 +155,7 @@ func creditsCmd() {
 	print("Contributors \n*Adam Thalhammer\n")
 	print("*Amanda Koh\n")
 	print("*Dave Schweisguth\n")
-	print("*John Murphy\n") 
+	print("*John Murphy\n")
 	print("*Lucas Wilson-Richter\n")
 	print("*Michael Vigilante\n")
 	print("*Nova Tan\n")
