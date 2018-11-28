@@ -195,7 +195,6 @@ func getConfiguredMFAFactor(factors []okta.AuthResponseFactor) (okta.AuthRespons
 
 	if viper.GetString("okta.mfa_type") != "" || viper.GetString("okta.mfa_provider") != "" {
 		for _, factor := range factors {
-			print(factor.FactorType)
 			if factor.FactorType == viper.GetString("okta.mfa_type") {
 				typeAcceptable = true
 
