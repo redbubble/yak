@@ -152,14 +152,13 @@ IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
 }
 
 func creditsCmd() {
-	print("Contributors \n*Adam Thalhammer\n")
-	print("*Amanda Koh\n")
-	print("*Dave Schweisguth\n")
-	print("*John Murphy\n")
-	print("*Lucas Wilson-Richter\n")
-	print("*Michael Vigilante\n")
-	print("*Nova Tan\n")
-	print("*Paul David\n")
+	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "Paul David"}
+
+	fmt.Println("Contributors:")
+
+	for _, contributor := range contributors {
+		fmt.Printf(" * %s\n", contributor)
+	}
 }
 
 func initCache() {
