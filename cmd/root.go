@@ -43,6 +43,11 @@ var rootCmd = &cobra.Command{
 			return nil
 		}
 
+		if viper.GetBool("credits") {
+			creditsCmd()
+			return nil
+		}
+
 		// The no-cache and cache-only flags are mutually exclusive, so bail out when both are specified
 		if viper.GetBool("cache.no_cache") && viper.GetBool("cache.cache_only") {
 			return errors.New("Please don't use --cache-only and --no-cache simultaneously.")
@@ -109,9 +114,11 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List available AWS roles and exit")
 	rootCmd.PersistentFlags().Bool("clear-cache", false, "Delete all data from yak's cache. If no other arguments are given, exit without error")
 	rootCmd.PersistentFlags().Bool("version", false, "Print the current version and exit")
+	rootCmd.PersistentFlags().Bool("credits", false, "Print the contributing authors")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
 	viper.BindPFlag("clear-cache", rootCmd.PersistentFlags().Lookup("clear-cache"))
 	viper.BindPFlag("version", rootCmd.PersistentFlags().Lookup("version"))
+	viper.BindPFlag("credits", rootCmd.PersistentFlags().Lookup("credits"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().String("okta-domain", "", "The domain to use for requests to Okta")
@@ -142,6 +149,16 @@ eQogICB8dnwgdiB2IFxfX19fLwogICAgVSAgeSAgWSAgdiAgXAogICAgICBc
 IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
 	var yascii = string(yabytes)
 	fmt.Printf("\n%s\n", yascii)
+}
+
+func creditsCmd() {
+	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "Paul David"}
+
+	fmt.Println("Contributors:")
+
+	for _, contributor := range contributors {
+		fmt.Printf(" * %s\n", contributor)
+	}
 }
 
 func initCache() {
