@@ -181,6 +181,14 @@ your organisation's Okta administrator.
 session_duration = 3600
 ```
 
+#### Other Config
+
+```toml
+[login]
+# Optional. Duration in seconds from the start of the login process until it times out.
+timeout = 180
+```
+
 #### Aliases
 
 You can configure *role aliases* in the `[alias]` section of your config file; these can be used instead of having to

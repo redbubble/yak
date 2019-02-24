@@ -14,7 +14,7 @@ func shimCmd(cmd *cobra.Command, args []string) error {
 	creds := cli.AssumeRoleFromCache(roleName)
 
 	if creds == nil {
-		loginData, err := cli.GetLoginData()
+		loginData, err := cli.GetLoginDataWithTimeout()
 
 		if err != nil {
 			return err

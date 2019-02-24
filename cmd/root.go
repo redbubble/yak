@@ -237,6 +237,7 @@ func getConfigPath() string {
 func defaultConfigValues() {
 	viper.SetDefault("aws.session_duration", 3600)
 	viper.SetDefault("output.format", "env")
+	viper.SetDefault("login.timeout", 180)
 }
 
 func Execute() {

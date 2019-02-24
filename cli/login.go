@@ -63,7 +63,42 @@ func getSamlFromCache() (string, bool) {
 	return "", false
 }
 
-func GetLoginData() (saml.LoginData, error) {
+func GetLoginDataWithTimeout() (saml.LoginData, error) {
+	errorChannel := make(chan error)
+	resultChannel := make(chan saml.LoginData)
+
+	go func() {
+		data, err := getLoginData()
+
+		if err != nil {
+			errorChannel <- err
+		} else {
+			resultChannel <- data
+		}
+	}()
+
+	timeoutSeconds := viper.GetDuration("login.timeout") * time.Second
+
+	if timeoutSeconds != 0 {
+		select {
+		case err := <-errorChannel:
+			return saml.LoginData{}, err
+		case data := <-resultChannel:
+			return data, nil
+		case <-time.After(timeoutSeconds):
+			return saml.LoginData{}, errors.New("Login timeout")
+		}
+	} else {
+		select {
+		case err := <-errorChannel:
+			return saml.LoginData{}, err
+		case data := <-resultChannel:
+			return data, nil
+		}
+	}
+}
+
+func getLoginData() (saml.LoginData, error) {
 	samlPayload, gotSaml := getSamlFromCache()
 
 	if !gotSaml {
