@@ -27,8 +27,8 @@ brew:
     owner: redbubble
     name: homebrew-yak
   commit_author:
-    name: toothbrush
-    email: paul@denknerd.org
+    name: Redbubble Delivery Engineering Team
+    email: delivery-engineers@redbubble.com
 
   folder: Formula
   homepage: https://github.com/redbubble/yak
