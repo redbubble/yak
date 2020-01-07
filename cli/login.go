@@ -194,7 +194,7 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 			validIndex = true
 		}
 
-		fmt.Fprintf(os.Stderr, "Set as default MFA factor by adding mfa_type = %s and mfa_provider = %s in your config!\n", factor.FactorType, factor.Provider)
+		fmt.Fprintf(os.Stderr, "Set as default MFA factor by adding mfa_type = \"%s\" and mfa_provider = \"%s\" to the [okta] section in your config!\n", factor.FactorType, factor.Provider)
 		return factor, nil
 	}
 
