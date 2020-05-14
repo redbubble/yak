@@ -32,12 +32,12 @@ func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 }
 
 func ResolveRole(roleName string) (string, error) {
-	if isIamRoleArn(roleName) {
-		return roleName, nil
-	}
-
 	if viper.IsSet("alias." + roleName) {
 		return viper.GetString("alias." + roleName), nil
+	}
+
+	if isIamRoleArn(roleName) {
+		return roleName, nil
 	}
 
 	return "", fmt.Errorf(notARoleErrorMessage, roleName)
