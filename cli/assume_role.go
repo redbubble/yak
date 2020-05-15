@@ -2,6 +2,8 @@ package cli
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/spf13/viper"
@@ -10,6 +12,10 @@ import (
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/saml"
 )
+
+var notARoleErrorMessage = `'%s' is neither an IAM role ARN nor a configured alias.
+
+Run 'yak --list-roles' to see which roles and aliases you can use.`
 
 func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 	if viper.GetBool("cache.no_cache") {
@@ -25,12 +31,16 @@ func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 	return &data
 }
 
-func ResolveRole(roleName string) string {
+func ResolveRole(roleName string) (string, error) {
 	if viper.IsSet("alias." + roleName) {
-		return viper.GetString("alias." + roleName)
+		return viper.GetString("alias." + roleName), nil
 	}
 
-	return roleName
+	if isIamRoleArn(roleName) {
+		return roleName, nil
+	}
+
+	return "", fmt.Errorf(notARoleErrorMessage, roleName)
 }
 
 func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
@@ -45,4 +55,10 @@ func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSA
 	}
 
 	return aws.AssumeRole(login, role, viper.GetInt64("aws.session_duration"))
+}
+
+var iamRoleArnRx = regexp.MustCompile(`^arn:aws:iam::\d*:role/[\w+=,.@-]{1,64}$`)
+
+func isIamRoleArn(roleName string) bool {
+	return iamRoleArnRx.Match([]byte(roleName))
 }
