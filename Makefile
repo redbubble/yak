@@ -1,6 +1,6 @@
-VERSION ?= 1.5.5
+VERSION ?= 1.5.5-release-test
 GIT_HASH = $(shell git rev-parse --short HEAD)
-DELIVERY_ENGINEERING_GPG_KEY = 9CC66977F5C47541
+DELIVERY_ENGINEERING_GPG_KEY = 4306B2215879C678
 
 .PHONY: vendor test install
 
