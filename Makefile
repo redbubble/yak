@@ -1,4 +1,4 @@
-VERSION ?= 1.5.5-release-test
+VERSION ?= 1.5.5
 GIT_HASH = $(shell git rev-parse --short HEAD)
 DELIVERY_ENGINEERING_GPG_KEY = 4306B2215879C678
 
