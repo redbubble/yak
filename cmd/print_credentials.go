@@ -11,7 +11,8 @@ import (
 )
 
 func printCredentialsCmd(cmd *cobra.Command, args []string) error {
-	roleName, err := cli.ResolveRole(args[0])
+	alias := args[0]
+	roleName, err := cli.ResolveRole(alias)
 
 	if err != nil {
 		return err
@@ -37,7 +38,7 @@ func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 		cli.WriteCache()
 	}
 
-	output, err := format.Credentials(viper.GetString("output.format"), creds)
+	output, err := format.Credentials(viper.GetString("output.format"), creds, alias)
 
 	if err != nil {
 		return err

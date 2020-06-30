@@ -22,7 +22,7 @@ func TestEnvironmentVariables(t *testing.T) {
 		},
 	}
 
-	subject := EnvironmentVariables(&creds)
+	subject := EnvironmentVariables(&creds, "")
 
 	if subject["AWS_ACCESS_KEY_ID"] != accessKeyId {
 		t.Log("---------------")

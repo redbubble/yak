@@ -11,13 +11,15 @@ import (
 	"github.com/redbubble/yak/aws"
 )
 
-var outputFormatters map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, error) = map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, error){
-	"json": func(creds *sts.AssumeRoleWithSAMLOutput) (string, error) {
+type formatter = func(*sts.AssumeRoleWithSAMLOutput, string) (string, error)
+
+var outputFormatters = map[string]formatter{
+	"json": func(creds *sts.AssumeRoleWithSAMLOutput, _ string) (string, error) {
 		data, err := json.Marshal(creds.Credentials)
 
 		return string(append(data, '\n')), err
 	},
-	"env": func(creds *sts.AssumeRoleWithSAMLOutput) (string, error) {
+	"env": func(creds *sts.AssumeRoleWithSAMLOutput, alias string) (string, error) {
 		output := bytes.Buffer{}
 
 		var outputFormat string
@@ -27,7 +29,7 @@ var outputFormatters map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, err
 			outputFormat = "export %s=%s\n"
 		}
 
-		for key, value := range aws.EnvironmentVariables(creds) {
+		for key, value := range aws.EnvironmentVariables(creds, alias) {
 			output.WriteString(fmt.Sprintf(outputFormat, key, value))
 		}
 
@@ -35,8 +37,8 @@ var outputFormatters map[string]func(*sts.AssumeRoleWithSAMLOutput) (string, err
 	},
 }
 
-func Credentials(format string, creds *sts.AssumeRoleWithSAMLOutput) (string, error) {
-	return outputFormatters[format](creds)
+func Credentials(format string, creds *sts.AssumeRoleWithSAMLOutput, alias string) (string, error) {
+	return outputFormatters[format](creds, alias)
 }
 
 func ValidateOutputFormat(format string) error {
@@ -53,7 +55,7 @@ func isPowerShell() bool {
 }
 
 func validOutputFormat(format string) bool {
-	for f, _ := range outputFormatters {
+	for f := range outputFormatters {
 		if format == f {
 			return true
 		}
@@ -65,7 +67,7 @@ func validOutputFormat(format string) bool {
 func validOutputFormats() []string {
 	formats := make([]string, 0, len(outputFormatters))
 
-	for format, _ := range outputFormatters {
+	for format := range outputFormatters {
 		formats = append(formats, format)
 	}
 

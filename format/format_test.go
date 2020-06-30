@@ -71,7 +71,7 @@ func TestDefaultEnvCredentials(t *testing.T) {
 			scenario.setUp()
 			defer scenario.tearDown()
 
-			text, err := Credentials("env", &creds)
+			text, err := Credentials("env", &creds, "")
 
 			if err != nil {
 				t.Log("---------------")
@@ -105,7 +105,7 @@ func TestDefaultEnvCredentials(t *testing.T) {
 }
 
 func TestJsonCredentials(t *testing.T) {
-	jsonData, err := Credentials("json", &creds)
+	jsonData, err := Credentials("json", &creds, "")
 
 	if err != nil {
 		t.Log("---------------")

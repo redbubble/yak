@@ -21,13 +21,14 @@ func AssumeRole(login saml.LoginData, role saml.LoginRole, duration int64) (*sts
 	return stsClient.AssumeRoleWithSAML(&input)
 }
 
-func EnvironmentVariables(stsOutput *sts.AssumeRoleWithSAMLOutput) map[string]string {
+func EnvironmentVariables(stsOutput *sts.AssumeRoleWithSAMLOutput, alias string) map[string]string {
 	subject := make(map[string]string)
 
 	subject["AWS_ACCESS_KEY_ID"] = *stsOutput.Credentials.AccessKeyId
 	subject["AWS_SECRET_ACCESS_KEY"] = *stsOutput.Credentials.SecretAccessKey
 	subject["AWS_SESSION_TOKEN"] = *stsOutput.Credentials.SessionToken
 	subject["AWS_METADATA_USER_ARN"] = *stsOutput.AssumedRoleUser.Arn
+	subject["AWS_VAULT"] = alias
 
 	return subject
 }
