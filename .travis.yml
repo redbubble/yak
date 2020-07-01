@@ -3,8 +3,6 @@ go:
   - 1.x
 install:
   - go get github.com/redbubble/go-passe
-  - go get github.com/golang/dep/cmd/dep
-  - make vendor
 jobs:
   include:
     - name: check formatting

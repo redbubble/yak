@@ -2,10 +2,7 @@ VERSION ?= 1.5.5
 GIT_HASH = $(shell git rev-parse --short HEAD)
 DELIVERY_ENGINEERING_GPG_KEY = 4306B2215879C678
 
-.PHONY: vendor test install
-
-vendor:
-	dep ensure
+.PHONY: test install
 
 test:
 	go test -v -json ./... | go-passe
