@@ -3,8 +3,8 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"regexp"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/spf13/viper"
 
@@ -57,8 +57,6 @@ func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSA
 	return aws.AssumeRole(login, role, viper.GetInt64("aws.session_duration"))
 }
 
-var iamRoleArnRx = regexp.MustCompile(`^arn:aws:iam::\d*:role/[\w+=,.@-]{1,64}$`)
-
 func isIamRoleArn(roleName string) bool {
-	return iamRoleArnRx.Match([]byte(roleName))
+	return arn.IsARN(roleName)
 }
