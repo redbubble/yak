@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/k0kubun/pp"
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/okta"
 	"github.com/redbubble/yak/saml"
@@ -113,7 +114,10 @@ func getLoginData() (saml.LoginData, error) {
 
 		if err != nil {
 			return saml.LoginData{}, err
+
 		}
+
+		pp.Print(authResponse)
 
 		for authResponse.Status == "MFA_REQUIRED" {
 			selectedFactor, err := chooseMFA(authResponse)
@@ -129,8 +133,14 @@ func getLoginData() (saml.LoginData, error) {
 			}
 		}
 
-		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
+		pp.Print(authResponse)
 
+		session, err := okta.CreateSession(viper.GetString("okta.domain"), authResponse)
+		if err != nil {
+			return saml.LoginData{}, err
+		}
+
+		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), *session)
 		if err != nil {
 			return saml.LoginData{}, err
 		}
