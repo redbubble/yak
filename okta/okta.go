@@ -75,6 +75,42 @@ type OktaAuthResponse struct {
 	YakStatusCode int
 }
 
+type OktaSession struct {
+	Id        string `json:"id"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+func CreateSession(oktaHref string, authResponse OktaAuthResponse) (*OktaSession, error) {
+	authBody, err := json.Marshal(map[string]string{"sessionToken": authResponse.SessionToken})
+	if err != nil {
+		return nil, err
+	}
+
+	oktaUrl, err := url.Parse(oktaHref)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionEndpoint, _ := url.Parse("/api/v1/sessions")
+	sessionUrl := oktaUrl.ResolveReference(sessionEndpoint)
+
+	resp, err := http.Post(sessionUrl.String(), "application/json", bytes.NewBuffer(authBody))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	session := OktaSession{}
+	if err := json.Unmarshal(body, &session); err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
 func Authenticate(oktaHref string, userData UserData) (OktaAuthResponse, error) {
 	authBody, err := json.Marshal(userData)
 
@@ -173,7 +209,7 @@ func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, erro
 	}
 }
 
-func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthResponse) (string, error) {
+func AwsSamlLogin(oktaHref string, samlHref string, oktasession OktaSession) (string, error) {
 	oktaUrl, err := url.Parse(oktaHref)
 
 	if err != nil {
@@ -188,12 +224,8 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 
 	samlUrl := oktaUrl.ResolveReference(samlEndpoint)
 
-	query := url.Values{}
-	query.Add("onetimetoken", oktaAuthResponse.SessionToken)
-
-	samlUrl.RawQuery = query.Encode()
-
 	jar, err := cookiejar.New(nil)
+	jar.SetCookies(samlUrl, []*http.Cookie{{Name: "sid", Value: oktasession.Id}})
 
 	if err != nil {
 		return "", err
