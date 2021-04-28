@@ -17,24 +17,9 @@ func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	creds := cli.AssumeRoleFromCache(roleName)
-
-	if creds == nil {
-		loginData, err := cli.GetLoginDataWithTimeout()
-
-		if err != nil {
-			return err
-		}
-
-		cli.CacheLoginRoles(loginData.Roles)
-		creds, err = cli.AssumeRole(loginData, roleName)
-
-		if err != nil {
-			return err
-		}
-
-		cli.CacheCredentials(roleName, creds)
-		cli.WriteCache()
+	creds, err := cli.AssumeRoleFromCache(roleName)
+	if err != nil {
+		return err
 	}
 
 	output, err := format.Credentials(viper.GetString("output.format"), creds)

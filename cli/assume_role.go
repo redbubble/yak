@@ -17,11 +17,36 @@ var notARoleErrorMessage = `'%s' is neither an IAM role ARN nor a configured ali
 
 Run 'yak --list-roles' to see which roles and aliases you can use.`
 
-func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
-	if viper.GetBool("cache.no_cache") {
-		return nil
+func AssumeRoleFromCache(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
+
+	creds := getAssumedRoleFromCache(role)
+
+	if creds == nil {
+		if viper.GetBool("cache.cache_only") {
+			return nil, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+		}
+
+		loginData, err := GetLoginDataWithTimeout()
+
+		if err != nil {
+			return nil, err
+		}
+
+		CacheLoginRoles(loginData.Roles)
+		creds, err = AssumeRole(loginData, role)
+
+		if err != nil {
+			return nil, err
+		}
+
+		cache.WriteDefault(role, creds)
+		cache.Export()
 	}
 
+	return creds, nil
+}
+
+func getAssumedRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 	data, ok := cache.Check(role).(sts.AssumeRoleWithSAMLOutput)
 
 	if !ok {
@@ -29,6 +54,7 @@ func AssumeRoleFromCache(role string) *sts.AssumeRoleWithSAMLOutput {
 	}
 
 	return &data
+
 }
 
 func ResolveRole(roleName string) (string, error) {
@@ -44,10 +70,6 @@ func ResolveRole(roleName string) (string, error) {
 }
 
 func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
-	if viper.GetBool("cache.cache_only") {
-		return nil, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
-	}
-
 	role, err := login.GetLoginRole(desiredRole)
 
 	if err != nil {
