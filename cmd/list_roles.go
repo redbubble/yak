@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/cli"
 )
 
@@ -20,7 +21,7 @@ func listRolesCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		cli.CacheLoginRoles(loginData.Roles)
-		cli.WriteCache()
+		cache.Export()
 
 		roles = (loginData.Roles)
 	}

@@ -28,10 +28,6 @@ var acceptableAuthFactors = [...]string{
 }
 
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
-	if viper.GetBool("cache.no_cache") {
-		return []saml.LoginRole{}, false
-	}
-
 	data, ok := cache.Check("aws:roles").([]string)
 
 	if !ok {
@@ -55,13 +51,8 @@ func samlResponseCacheKey() string {
 }
 
 func getSamlFromCache() (string, bool) {
-	if !viper.GetBool("cache.no_cache") {
-		data, ok := cache.Check(samlResponseCacheKey()).(string)
-
-		return data, ok
-	}
-
-	return "", false
+	data, ok := cache.Check(samlResponseCacheKey()).(string)
+	return data, ok
 }
 
 func GetLoginDataWithTimeout() (saml.LoginData, error) {
@@ -154,10 +145,7 @@ func getLoginData() (saml.LoginData, error) {
 
 	expiryTime := samlResponse.Assertion.Conditions.NotOnOrAfter
 
-	if !viper.GetBool("cache.no_cache") {
-		cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
-	}
-
+	cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
 
@@ -346,10 +334,6 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 }
 
 func CacheLoginRoles(roles []saml.LoginRole) {
-	if viper.GetBool("cache.no_cache") {
-		return
-	}
-
 	data := []string{}
 
 	for _, role := range roles {

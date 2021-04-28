@@ -16,24 +16,9 @@ func shimCmd(cmd *cobra.Command, args []string) error {
 
 	command := args[1:]
 
-	creds := cli.AssumeRoleFromCache(roleName)
-
-	if creds == nil {
-		loginData, err := cli.GetLoginDataWithTimeout()
-
-		if err != nil {
-			return err
-		}
-
-		cli.CacheLoginRoles(loginData.Roles)
-		creds, err = cli.AssumeRole(loginData, roleName)
-
-		if err != nil {
-			return err
-		}
-
-		cli.CacheCredentials(roleName, creds)
-		cli.WriteCache()
+	creds, err := cli.AssumeRoleFromCache(roleName)
+	if err != nil {
+		return err
 	}
 
 	return cli.Exec(
