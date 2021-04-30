@@ -17,7 +17,7 @@ var notARoleErrorMessage = `'%s' is neither an IAM role ARN nor a configured ali
 
 Run 'yak --list-roles' to see which roles and aliases you can use.`
 
-func AssumeRoleFromCache(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
+func AssumeRole(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
 
 	creds := getAssumedRoleFromCache(role)
 
@@ -33,7 +33,7 @@ func AssumeRoleFromCache(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
 		}
 
 		CacheLoginRoles(loginData.Roles)
-		creds, err = AssumeRole(loginData, role)
+		creds, err = assumeRoleFromAws(loginData, role)
 
 		if err != nil {
 			return nil, err
@@ -69,7 +69,7 @@ func ResolveRole(roleName string) (string, error) {
 	return "", fmt.Errorf(notARoleErrorMessage, roleName)
 }
 
-func AssumeRole(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
+func assumeRoleFromAws(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
 	role, err := login.GetLoginRole(desiredRole)
 
 	if err != nil {

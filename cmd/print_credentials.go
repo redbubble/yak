@@ -17,7 +17,7 @@ func printCredentialsCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	creds, err := cli.AssumeRoleFromCache(roleName)
+	creds, err := cli.AssumeRole(roleName)
 	if err != nil {
 		return err
 	}
