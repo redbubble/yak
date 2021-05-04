@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/k0kubun/pp"
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/okta"
 	"github.com/redbubble/yak/saml"
@@ -108,8 +107,6 @@ func getLoginData() (saml.LoginData, error) {
 
 		}
 
-		pp.Print(authResponse)
-
 		for authResponse.Status == "MFA_REQUIRED" {
 			selectedFactor, err := chooseMFA(authResponse)
 
@@ -123,8 +120,6 @@ func getLoginData() (saml.LoginData, error) {
 				return saml.LoginData{}, err
 			}
 		}
-
-		pp.Print(authResponse)
 
 		session, err = getOktaSession(authResponse)
 		if err != nil {
