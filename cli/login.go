@@ -46,13 +46,13 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
-func samlResponseCacheKey() string {
-	return fmt.Sprintf("okta:samlResponse:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
+func oktaSessionCacheKey() string {
+	return fmt.Sprintf("okta:sessionToken:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
 }
 
-func getSamlFromCache() (string, bool) {
-	data, ok := cache.Check(samlResponseCacheKey()).(string)
-	return data, ok
+func getOktaSessionFromCache() (*okta.OktaSession, bool) {
+	data, ok := cache.Check(oktaSessionCacheKey()).(okta.OktaSession)
+	return &data, ok
 }
 
 func GetLoginDataWithTimeout() (saml.LoginData, error) {
@@ -91,9 +91,9 @@ func GetLoginDataWithTimeout() (saml.LoginData, error) {
 }
 
 func getLoginData() (saml.LoginData, error) {
-	samlPayload, gotSaml := getSamlFromCache()
+	session, gotSession := getOktaSessionFromCache()
 
-	if !gotSaml {
+	if !gotSession {
 		var authResponse okta.OktaAuthResponse
 		var err error
 
@@ -126,15 +126,16 @@ func getLoginData() (saml.LoginData, error) {
 
 		pp.Print(authResponse)
 
-		session, err := okta.CreateSession(viper.GetString("okta.domain"), authResponse)
+		session, err = getOktaSession(authResponse)
 		if err != nil {
 			return saml.LoginData{}, err
 		}
 
-		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), *session)
-		if err != nil {
-			return saml.LoginData{}, err
-		}
+	}
+
+	samlPayload, err := okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), *session)
+	if err != nil {
+		return saml.LoginData{}, err
 	}
 
 	samlResponse, err := saml.ParseResponse(samlPayload)
@@ -143,9 +144,6 @@ func getLoginData() (saml.LoginData, error) {
 		return saml.LoginData{}, err
 	}
 
-	expiryTime := samlResponse.Assertion.Conditions.NotOnOrAfter
-
-	cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
 
@@ -198,6 +196,23 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 
 	// If no factor is chosen by this point, take the first acceptable factor
 	return acceptableFactors[0], nil
+}
+
+func getOktaSession(authResponse okta.OktaAuthResponse) (session *okta.OktaSession, err error) {
+
+	session, ok := getOktaSessionFromCache()
+
+	if ok {
+		return
+	}
+
+	session, err = okta.CreateSession(viper.GetString("okta.domain"), authResponse)
+
+	if err == nil {
+		cache.WriteDefault(oktaSessionCacheKey(), *session)
+	}
+
+	return
 }
 
 func getAcceptableFactors(factors []okta.AuthResponseFactor) []okta.AuthResponseFactor {

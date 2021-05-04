@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/spf13/viper"
+
+	"github.com/redbubble/yak/okta"
 )
 
 var cacheHandle *gocache.Cache
@@ -39,6 +41,7 @@ func importCache(roleExpiryDuration time.Duration) error {
 	}
 
 	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gob.Register(okta.OktaSession{})
 	decoder := gob.NewDecoder(bufio.NewReader(cacheFile))
 	var items map[string]gocache.Item
 
@@ -97,6 +100,7 @@ func Export() error {
 
 	writer := bufio.NewWriter(cacheFile)
 	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gob.Register(okta.OktaSession{})
 	enc := gob.NewEncoder(writer)
 	err = enc.Encode(cache().Items())
 
