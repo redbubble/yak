@@ -32,6 +32,17 @@ func Enabled() bool {
 	return !viper.GetBool("cache.no_cache")
 }
 
+var initialisedGob = false
+
+func gobInit() {
+	if initialisedGob {
+		return
+	}
+	initialisedGob = true
+	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gob.Register(okta.OktaSession{})
+}
+
 func importCache(roleExpiryDuration time.Duration) error {
 	cacheFile, err := os.Open(viper.GetString("cache.file_location"))
 	defer cacheFile.Close()
@@ -40,14 +51,11 @@ func importCache(roleExpiryDuration time.Duration) error {
 		return err
 	}
 
-	gob.Register(sts.AssumeRoleWithSAMLOutput{})
-	gob.Register(okta.OktaSession{})
+	gobInit()
 	decoder := gob.NewDecoder(bufio.NewReader(cacheFile))
 	var items map[string]gocache.Item
 
-	err = decoder.Decode(&items)
-
-	if err != nil {
+	if err = decoder.Decode(&items); err != nil {
 		return err
 	}
 
@@ -99,12 +107,9 @@ func Export() error {
 	}
 
 	writer := bufio.NewWriter(cacheFile)
-	gob.Register(sts.AssumeRoleWithSAMLOutput{})
-	gob.Register(okta.OktaSession{})
+	gobInit()
 	enc := gob.NewEncoder(writer)
-	err = enc.Encode(cache().Items())
-
-	if err != nil {
+	if err = enc.Encode(cache().Items()); err != nil {
 		return err
 	}
 
