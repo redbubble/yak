@@ -10,10 +10,8 @@ require (
 	github.com/go-ini/ini v1.35.0 // indirect
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381 // indirect
 	github.com/magiconair/properties v1.7.6 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747
 	github.com/mitchellh/mapstructure v0.0.0-20180220230111-00c29f56e238 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
