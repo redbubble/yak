@@ -69,18 +69,18 @@ func WriteDefault(key string, value interface{}) {
 	cache().SetDefault(key, value)
 }
 
-func Check(roleArn string) interface{} {
+func Check(key string) interface{} {
 	if !Enabled() {
 		return nil
 	}
 
-	creds, credsExist := cache().Get(roleArn)
+	data, dataExists := cache().Get(key)
 
-	if !credsExist {
+	if !dataExists {
 		return nil
 	}
 
-	return creds
+	return data
 }
 
 func Export() error {
