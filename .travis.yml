@@ -2,7 +2,7 @@ language: go
 go:
   - 1.x
 install:
-  - go get github.com/redbubble/go-passe
+  - GO111MODULE=off go get gotest.tools/gotestsum
 jobs:
   include:
     - name: check formatting
