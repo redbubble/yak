@@ -5,7 +5,7 @@ DELIVERY_ENGINEERING_GPG_KEY = 4306B2215879C678
 .PHONY: test install
 
 test:
-	go test -v -json ./... | go-passe
+	gotestsum
 
 fmt:
 	go fmt ./...
