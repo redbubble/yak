@@ -11,6 +11,7 @@ import (
 	"github.com/redbubble/yak/aws"
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/saml"
+	log "github.com/sirupsen/logrus"
 )
 
 var notARoleErrorMessage = `'%s' is neither an IAM role ARN nor a configured alias.
@@ -22,6 +23,7 @@ func AssumeRole(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
 	creds := getAssumedRoleFromCache(role)
 
 	if creds == nil {
+		log.Infof("Role %s not in cache", role)
 		if viper.GetBool("cache.cache_only") {
 			return nil, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
 		}
@@ -70,6 +72,8 @@ func ResolveRole(roleName string) (string, error) {
 }
 
 func assumeRoleFromAws(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
+	log.Infof("Assuming role %s from AWS", desiredRole)
+
 	role, err := login.GetLoginRole(desiredRole)
 
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
@@ -70,6 +71,12 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 			return err
 		}
 
+		if viper.GetBool("verbose") {
+			log.SetLevel(log.InfoLevel)
+		} else {
+			log.SetLevel(log.WarnLevel)
+		}
+
 		if viper.GetBool("clear-cache") {
 			clearCache()
 
@@ -114,6 +121,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("list-roles", "l", false, "List available AWS roles and exit")
 	rootCmd.PersistentFlags().Bool("clear-cache", false, "Delete all data from yak's cache. If no other arguments are given, exit without error")
 	rootCmd.PersistentFlags().Bool("version", false, "Print the current version and exit")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Print our actions as we take them")
 	rootCmd.PersistentFlags().Bool("credits", false, "Print the contributing authors")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
 	viper.BindPFlag("clear-cache", rootCmd.PersistentFlags().Lookup("clear-cache"))
