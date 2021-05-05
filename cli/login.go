@@ -16,6 +16,7 @@ import (
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/okta"
 	"github.com/redbubble/yak/saml"
+	log "github.com/sirupsen/logrus"
 )
 
 const maxLoginRetries = 3
@@ -95,6 +96,8 @@ func getLoginData() (saml.LoginData, error) {
 	if !gotSession {
 		var authResponse okta.OktaAuthResponse
 		var err error
+
+		log.Infof("Okta session not found in cache")
 
 		if viper.GetBool("cache.cache_only") {
 			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
@@ -194,13 +197,7 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 }
 
 func getOktaSession(authResponse okta.OktaAuthResponse) (session *okta.OktaSession, err error) {
-
-	session, ok := getOktaSessionFromCache()
-
-	if ok {
-		return
-	}
-
+	log.Infof("Creating new Okta session for %s", viper.GetString("okta.domain"))
 	session, err = okta.CreateSession(viper.GetString("okta.domain"), authResponse)
 
 	if err == nil {
