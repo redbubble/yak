@@ -1,0 +1,14 @@
+---
+name: tests
+on: [ push, pull_request ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.1'
+      - run: make fmt && git diff --exit-code
+      - run: GO111MODULE=off go get gotest.tools/gotestsum
+      - run: make test
