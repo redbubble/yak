@@ -32,13 +32,7 @@ func Enabled() bool {
 	return !viper.GetBool("cache.no_cache")
 }
 
-var initialisedGob = false
-
 func gobInit() {
-	if initialisedGob {
-		return
-	}
-	initialisedGob = true
 	gob.Register(sts.AssumeRoleWithSAMLOutput{})
 	gob.Register(okta.OktaSession{})
 }
