@@ -71,7 +71,9 @@ These can be configured either in the [okta] section of ~/.config/yak/config.tom
 			return err
 		}
 
-		if viper.GetBool("verbose") {
+		if viper.GetBool("debug") {
+			log.SetLevel(log.DebugLevel)
+		} else if viper.GetBool("verbose") {
 			log.SetLevel(log.InfoLevel)
 		} else {
 			log.SetLevel(log.WarnLevel)
@@ -122,11 +124,15 @@ func init() {
 	rootCmd.PersistentFlags().Bool("clear-cache", false, "Delete all data from yak's cache. If no other arguments are given, exit without error")
 	rootCmd.PersistentFlags().Bool("version", false, "Print the current version and exit")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Print our actions as we take them")
+	rootCmd.PersistentFlags().Bool("debug", false, "Print detailed debug information, including session tokens")
+
 	rootCmd.PersistentFlags().Bool("credits", false, "Print the contributing authors")
 	viper.BindPFlag("list-roles", rootCmd.PersistentFlags().Lookup("list-roles"))
 	viper.BindPFlag("clear-cache", rootCmd.PersistentFlags().Lookup("clear-cache"))
 	viper.BindPFlag("version", rootCmd.PersistentFlags().Lookup("version"))
 	viper.BindPFlag("credits", rootCmd.PersistentFlags().Lookup("credits"))
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 
 	rootCmd.PersistentFlags().StringP("okta-username", "u", "", "Your Okta username")
 	rootCmd.PersistentFlags().String("okta-domain", "", "The domain to use for requests to Okta")
