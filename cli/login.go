@@ -46,13 +46,37 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
+func oktaDomain() string {
+	return viper.GetString("okta.domain")
+}
+
+func oktaUsername() string {
+	return viper.GetString("okta.username")
+}
+
 func oktaSessionCacheKey() string {
-	return fmt.Sprintf("okta:sessionToken:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
+	return fmt.Sprintf("okta:sessionToken:%s:%s", oktaDomain(), oktaUsername())
 }
 
 func getOktaSessionFromCache() (*okta.OktaSession, bool) {
 	data, ok := cache.Check(oktaSessionCacheKey()).(okta.OktaSession)
 	return &data, ok
+}
+
+func checkOktaSession(session *okta.OktaSession) bool {
+	response, err := okta.GetSession(oktaDomain(), session)
+
+	// This needs explaining: Okta's "Create Session" API call gives
+	// us a session ID that we set as the `sid` cookie. Get & Refresh return a
+	// *different* ID that we can't use as the cookie, but they both
+	// extend the calling session.
+
+	if err == nil {
+		session.ExpiresAt = response.ExpiresAt
+		cache.Write(oktaSessionCacheKey(), *session, session.ExpiresAt.Sub(time.Now()))
+	}
+
+	return err == nil
 }
 
 func GetLoginDataWithTimeout() (saml.LoginData, error) {
@@ -93,11 +117,19 @@ func GetLoginDataWithTimeout() (saml.LoginData, error) {
 func getLoginData() (saml.LoginData, error) {
 	session, gotSession := getOktaSessionFromCache()
 
+	if gotSession && session.ExpiresAt.After(time.Now()) {
+		log.Infof("Okta session found in cache (%s), expires %s", session.Id, session.ExpiresAt.String())
+		gotSession = checkOktaSession(session)
+		if gotSession {
+			log.Infof("Refreshed session, now expires %s", session.ExpiresAt.String())
+		}
+	}
+
 	if !gotSession {
 		var authResponse okta.OktaAuthResponse
 		var err error
 
-		log.Infof("Okta session not found in cache")
+		log.Infof("Okta session not in cache or no longer valid, re-authenticating")
 
 		if viper.GetBool("cache.cache_only") {
 			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
@@ -131,7 +163,7 @@ func getLoginData() (saml.LoginData, error) {
 
 	}
 
-	samlPayload, err := okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), *session)
+	samlPayload, err := okta.AwsSamlLogin(oktaDomain(), viper.GetString("okta.aws_saml_endpoint"), *session)
 	if err != nil {
 		return saml.LoginData{}, err
 	}
@@ -141,6 +173,7 @@ func getLoginData() (saml.LoginData, error) {
 	if err != nil {
 		return saml.LoginData{}, err
 	}
+	log.WithField("saml", samlResponse).Debug("okta.go: SAML response from Okta")
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
@@ -197,11 +230,11 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 }
 
 func getOktaSession(authResponse okta.OktaAuthResponse) (session *okta.OktaSession, err error) {
-	log.Infof("Creating new Okta session for %s", viper.GetString("okta.domain"))
-	session, err = okta.CreateSession(viper.GetString("okta.domain"), authResponse)
+	log.Infof("Creating new Okta session for %s", oktaDomain())
+	session, err = okta.CreateSession(oktaDomain(), authResponse)
 
 	if err == nil {
-		cache.WriteDefault(oktaSessionCacheKey(), *session)
+		cache.Write(oktaSessionCacheKey(), *session, session.ExpiresAt.Sub(time.Now()))
 	}
 
 	return
@@ -298,7 +331,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 
 	for unauthorised && (retries < maxLoginRetries) {
 		retries++
-		username := viper.GetString("okta.username")
+		username := oktaUsername()
 		promptUsername := (username == "")
 
 		// Viper isn't used here because it's really hard to get Viper to not accept values through the config file
@@ -328,7 +361,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 			}
 		}
 
-		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
+		authResponse, err = okta.Authenticate(oktaDomain(), okta.UserData{username, password})
 
 		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries && !envPassword {
 			fmt.Fprintln(os.Stderr, "Sorry, try again.")

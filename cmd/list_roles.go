@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -14,6 +15,7 @@ func listRolesCmd(cmd *cobra.Command, args []string) error {
 	roles, gotRoles := cli.GetRolesFromCache()
 
 	if !gotRoles {
+		log.Infof("Role list not in cache, grabbing from AWS")
 		loginData, err := cli.GetLoginDataWithTimeout()
 
 		if err != nil {
