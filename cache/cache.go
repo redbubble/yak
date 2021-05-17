@@ -7,23 +7,34 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/patrickmn/go-cache"
+	gocache "github.com/patrickmn/go-cache"
 	"github.com/spf13/viper"
+
+	"github.com/redbubble/yak/okta"
 )
 
-var cacheHandle *cache.Cache
+var cacheHandle *gocache.Cache
 
-func Cache() *cache.Cache {
+func cache() *gocache.Cache {
 	if cacheHandle == nil {
 		roleExpiryDuration := time.Duration(viper.GetInt("aws.session_duration")) * time.Second
 		err := importCache(roleExpiryDuration)
 
 		if err != nil {
-			cacheHandle = cache.New(roleExpiryDuration, roleExpiryDuration)
+			cacheHandle = gocache.New(roleExpiryDuration, roleExpiryDuration)
 		}
 	}
 
 	return cacheHandle
+}
+
+func Enabled() bool {
+	return !viper.GetBool("cache.no_cache")
+}
+
+func gobInit() {
+	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gob.Register(okta.OktaSession{})
 }
 
 func importCache(roleExpiryDuration time.Duration) error {
@@ -34,40 +45,54 @@ func importCache(roleExpiryDuration time.Duration) error {
 		return err
 	}
 
-	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gobInit()
 	decoder := gob.NewDecoder(bufio.NewReader(cacheFile))
-	var items map[string]cache.Item
+	var items map[string]gocache.Item
 
-	err = decoder.Decode(&items)
-
-	if err != nil {
+	if err = decoder.Decode(&items); err != nil {
 		return err
 	}
 
-	cacheHandle = cache.NewFrom(roleExpiryDuration, roleExpiryDuration, items)
+	cacheHandle = gocache.NewFrom(roleExpiryDuration, roleExpiryDuration, items)
 
 	return nil
 }
 
 func Write(key string, value interface{}, duration time.Duration) {
-	Cache().Set(key, value, duration)
+	if !Enabled() {
+		return
+	}
+
+	cache().Set(key, value, duration)
 }
 
 func WriteDefault(key string, value interface{}) {
-	Cache().SetDefault(key, value)
+	if !Enabled() {
+		return
+	}
+
+	cache().SetDefault(key, value)
 }
 
-func Check(roleArn string) interface{} {
-	creds, credsExist := Cache().Get(roleArn)
-
-	if !credsExist {
+func Check(key string) interface{} {
+	if !Enabled() {
 		return nil
 	}
 
-	return creds
+	data, dataExists := cache().Get(key)
+
+	if !dataExists {
+		return nil
+	}
+
+	return data
 }
 
 func Export() error {
+	if !Enabled() {
+		return nil
+	}
+
 	cacheFile, err := os.Create(viper.GetString("cache.file_location"))
 	defer cacheFile.Close()
 
@@ -76,11 +101,9 @@ func Export() error {
 	}
 
 	writer := bufio.NewWriter(cacheFile)
-	gob.Register(sts.AssumeRoleWithSAMLOutput{})
+	gobInit()
 	enc := gob.NewEncoder(writer)
-	err = enc.Encode(Cache().Items())
-
-	if err != nil {
+	if err = enc.Encode(cache().Items()); err != nil {
 		return err
 	}
 

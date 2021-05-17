@@ -16,6 +16,7 @@ import (
 	"github.com/redbubble/yak/cache"
 	"github.com/redbubble/yak/okta"
 	"github.com/redbubble/yak/saml"
+	log "github.com/sirupsen/logrus"
 )
 
 const maxLoginRetries = 3
@@ -27,10 +28,6 @@ var acceptableAuthFactors = [...]string{
 }
 
 func GetRolesFromCache() ([]saml.LoginRole, bool) {
-	if viper.GetBool("cache.no_cache") {
-		return []saml.LoginRole{}, false
-	}
-
 	data, ok := cache.Check("aws:roles").([]string)
 
 	if !ok {
@@ -49,18 +46,49 @@ func GetRolesFromCache() ([]saml.LoginRole, bool) {
 	return roles, true
 }
 
-func samlResponseCacheKey() string {
-	return fmt.Sprintf("okta:samlResponse:%s:%s", viper.GetString("okta.domain"), viper.GetString("okta.username"))
+func oktaDomain() string {
+	return viper.GetString("okta.domain")
 }
 
-func getSamlFromCache() (string, bool) {
-	if !viper.GetBool("cache.no_cache") {
-		data, ok := cache.Check(samlResponseCacheKey()).(string)
+func oktaUsername() string {
+	return viper.GetString("okta.username")
+}
 
-		return data, ok
+func oktaSessionCacheKey() string {
+	return fmt.Sprintf("okta:sessionToken:%s:%s", oktaDomain(), oktaUsername())
+}
+
+func getOktaSessionFromCache() (*okta.OktaSession, bool) {
+	data, ok := cache.Check(oktaSessionCacheKey()).(okta.OktaSession)
+	return &data, ok
+}
+
+func cacheOktaSession(session *okta.OktaSession) {
+	expires := session.ExpiresAt.Sub(time.Now())
+	expiryLimit := time.Duration(viper.GetInt64("okta.session_cache_limit")) * time.Second
+
+	if expiryLimit > 0 && expiryLimit < expires {
+		log.Debugf("Okta session expires in %.0f seconds, but we're configured to only cache that for %.0f seconds", expires.Seconds(), expiryLimit.Seconds())
+		expires = expiryLimit
 	}
 
-	return "", false
+	cache.Write(oktaSessionCacheKey(), *session, expires)
+}
+
+func checkOktaSession(session *okta.OktaSession) bool {
+	response, err := okta.GetSession(oktaDomain(), session)
+
+	// This needs explaining: Okta's "Create Session" API call gives
+	// us a session ID that we set as the `sid` cookie. Get & Refresh return a
+	// *different* ID that we can't use as the cookie, but they both
+	// extend the calling session.
+
+	if err == nil {
+		session.ExpiresAt = response.ExpiresAt
+		cacheOktaSession(session)
+	}
+
+	return err == nil
 }
 
 func GetLoginDataWithTimeout() (saml.LoginData, error) {
@@ -99,11 +127,21 @@ func GetLoginDataWithTimeout() (saml.LoginData, error) {
 }
 
 func getLoginData() (saml.LoginData, error) {
-	samlPayload, gotSaml := getSamlFromCache()
+	session, gotSession := getOktaSessionFromCache()
 
-	if !gotSaml {
+	if gotSession && session.ExpiresAt.After(time.Now()) {
+		log.Infof("Okta session found in cache (%s), expires %s", session.Id, session.ExpiresAt.String())
+		gotSession = checkOktaSession(session)
+		if gotSession {
+			log.Infof("Refreshed session, now expires %s", session.ExpiresAt.String())
+		}
+	}
+
+	if !gotSession {
 		var authResponse okta.OktaAuthResponse
 		var err error
+
+		log.Infof("Okta session not in cache or no longer valid, re-authenticating")
 
 		if viper.GetBool("cache.cache_only") {
 			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
@@ -113,6 +151,7 @@ func getLoginData() (saml.LoginData, error) {
 
 		if err != nil {
 			return saml.LoginData{}, err
+
 		}
 
 		for authResponse.Status == "MFA_REQUIRED" {
@@ -129,11 +168,16 @@ func getLoginData() (saml.LoginData, error) {
 			}
 		}
 
-		samlPayload, err = okta.AwsSamlLogin(viper.GetString("okta.domain"), viper.GetString("okta.aws_saml_endpoint"), authResponse)
-
+		session, err = getOktaSession(authResponse)
 		if err != nil {
 			return saml.LoginData{}, err
 		}
+
+	}
+
+	samlPayload, err := okta.AwsSamlLogin(oktaDomain(), viper.GetString("okta.aws_saml_endpoint"), *session)
+	if err != nil {
+		return saml.LoginData{}, err
 	}
 
 	samlResponse, err := saml.ParseResponse(samlPayload)
@@ -141,12 +185,7 @@ func getLoginData() (saml.LoginData, error) {
 	if err != nil {
 		return saml.LoginData{}, err
 	}
-
-	expiryTime := samlResponse.Assertion.Conditions.NotOnOrAfter
-
-	if !viper.GetBool("cache.no_cache") {
-		cache.Write(samlResponseCacheKey(), string(samlPayload), expiryTime.Sub(time.Now()))
-	}
+	log.WithField("saml", samlResponse).Debug("okta.go: SAML response from Okta")
 
 	return saml.CreateLoginData(samlResponse, samlPayload), nil
 }
@@ -200,6 +239,17 @@ func chooseMFA(authResponse okta.OktaAuthResponse) (okta.AuthResponseFactor, err
 
 	// If no factor is chosen by this point, take the first acceptable factor
 	return acceptableFactors[0], nil
+}
+
+func getOktaSession(authResponse okta.OktaAuthResponse) (session *okta.OktaSession, err error) {
+	log.Infof("Creating new Okta session for %s", oktaDomain())
+	session, err = okta.CreateSession(oktaDomain(), authResponse)
+
+	if err == nil {
+		cacheOktaSession(session)
+	}
+
+	return
 }
 
 func getAcceptableFactors(factors []okta.AuthResponseFactor) []okta.AuthResponseFactor {
@@ -293,7 +343,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 
 	for unauthorised && (retries < maxLoginRetries) {
 		retries++
-		username := viper.GetString("okta.username")
+		username := oktaUsername()
 		promptUsername := (username == "")
 
 		// Viper isn't used here because it's really hard to get Viper to not accept values through the config file
@@ -323,7 +373,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 			}
 		}
 
-		authResponse, err = okta.Authenticate(viper.GetString("okta.domain"), okta.UserData{username, password})
+		authResponse, err = okta.Authenticate(oktaDomain(), okta.UserData{username, password})
 
 		if authResponse.YakStatusCode == okta.YAK_STATUS_UNAUTHORISED && retries < maxLoginRetries && !envPassword {
 			fmt.Fprintln(os.Stderr, "Sorry, try again.")
@@ -336,10 +386,6 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 }
 
 func CacheLoginRoles(roles []saml.LoginRole) {
-	if viper.GetBool("cache.no_cache") {
-		return
-	}
-
 	data := []string{}
 
 	for _, role := range roles {

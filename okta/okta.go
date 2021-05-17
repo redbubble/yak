@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/html"
 )
 
@@ -75,6 +76,83 @@ type OktaAuthResponse struct {
 	YakStatusCode int
 }
 
+type OktaSession struct {
+	Id        string    `json:"id"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
+// TODO: DRY
+func CreateSession(oktaHref string, authResponse OktaAuthResponse) (*OktaSession, error) {
+	authBody, err := json.Marshal(map[string]string{"sessionToken": authResponse.SessionToken})
+	if err != nil {
+		return nil, err
+	}
+
+	oktaUrl, err := url.Parse(oktaHref)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionEndpoint, _ := url.Parse("/api/v1/sessions")
+	sessionUrl := oktaUrl.ResolveReference(sessionEndpoint)
+
+	resp, err := http.Post(sessionUrl.String(), "application/json", bytes.NewBuffer(authBody))
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	session := OktaSession{}
+	if err := json.Unmarshal(body, &session); err != nil {
+		return nil, err
+	}
+	log.WithField("session", session).Debug("okta.go: Created Session from Okta")
+	return &session, nil
+}
+
+// TODO: DRY
+func GetSession(oktaHref string, session *OktaSession) (*OktaSession, error) {
+	oktaUrl, err := url.Parse(oktaHref)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionEndpoint, _ := url.Parse("/api/v1/sessions/me")
+	sessionUrl := oktaUrl.ResolveReference(sessionEndpoint)
+
+	jar, _ := cookiejar.New(nil)
+	jar.SetCookies(sessionUrl, []*http.Cookie{{Name: "sid", Value: session.Id}})
+
+	client := http.Client{
+		Jar: jar,
+	}
+
+	resp, err := client.Get(sessionUrl.String())
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode > 300 {
+		return nil, fmt.Errorf("Status code %d, expected < 2xx", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	newSession := OktaSession{}
+	if err := json.Unmarshal(body, &newSession); err != nil {
+		return nil, err
+	}
+	log.WithField("session", string(body)).Debug("okta.go: Retrieved Session from Okta")
+	return &newSession, nil
+}
+
 func Authenticate(oktaHref string, userData UserData) (OktaAuthResponse, error) {
 	authBody, err := json.Marshal(userData)
 
@@ -94,11 +172,13 @@ func Authenticate(oktaHref string, userData UserData) (OktaAuthResponse, error) 
 	body, yakStatus, err := makeRequest(primaryAuthUrl.String(), bytes.NewBuffer(authBody))
 
 	if err != nil {
+		log.WithField("err", err).Debug("okta.go: Okta login error")
 		return OktaAuthResponse{YakStatusCode: yakStatus}, err
 	}
 
 	authResponse := OktaAuthResponse{YakStatusCode: YAK_STATUS_OK}
 	json.Unmarshal(body, &authResponse)
+	log.WithField("response", authResponse).Debug("okta.go: Auth response for Okta login")
 
 	return authResponse, nil
 }
@@ -173,7 +253,7 @@ func VerifyPush(url string, pushRequestBody PushRequest) (OktaAuthResponse, erro
 	}
 }
 
-func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthResponse) (string, error) {
+func AwsSamlLogin(oktaHref string, samlHref string, oktasession OktaSession) (string, error) {
 	oktaUrl, err := url.Parse(oktaHref)
 
 	if err != nil {
@@ -188,12 +268,8 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 
 	samlUrl := oktaUrl.ResolveReference(samlEndpoint)
 
-	query := url.Values{}
-	query.Add("onetimetoken", oktaAuthResponse.SessionToken)
-
-	samlUrl.RawQuery = query.Encode()
-
 	jar, err := cookiejar.New(nil)
+	jar.SetCookies(samlUrl, []*http.Cookie{{Name: "sid", Value: oktasession.Id}})
 
 	if err != nil {
 		return "", err
@@ -234,6 +310,7 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktaAuthResponse OktaAuthRes
 
 func makeRequest(url string, body io.Reader) ([]byte, int, error) {
 	resp, err := http.Post(url, "application/json", body)
+	log.WithField("url", url).WithField("statusCode", resp.StatusCode).Debug("okta.go: Okta request")
 
 	if err != nil {
 		return []byte{}, YAK_STATUS_NET_ERROR, err
