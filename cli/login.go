@@ -63,6 +63,18 @@ func getOktaSessionFromCache() (*okta.OktaSession, bool) {
 	return &data, ok
 }
 
+func cacheOktaSession(session *okta.OktaSession) {
+	expires := session.ExpiresAt.Sub(time.Now())
+	expiryLimit := time.Duration(viper.GetInt64("okta.session_cache_limit")) * time.Second
+
+	if expiryLimit > 0 && expiryLimit < expires {
+		log.Debugf("Okta session expires in %.0f seconds, but we're configured to only cache that for %.0f seconds", expires.Seconds(), expiryLimit.Seconds())
+		expires = expiryLimit
+	}
+
+	cache.Write(oktaSessionCacheKey(), *session, expires)
+}
+
 func checkOktaSession(session *okta.OktaSession) bool {
 	response, err := okta.GetSession(oktaDomain(), session)
 
@@ -73,7 +85,7 @@ func checkOktaSession(session *okta.OktaSession) bool {
 
 	if err == nil {
 		session.ExpiresAt = response.ExpiresAt
-		cache.Write(oktaSessionCacheKey(), *session, session.ExpiresAt.Sub(time.Now()))
+		cacheOktaSession(session)
 	}
 
 	return err == nil
@@ -234,7 +246,7 @@ func getOktaSession(authResponse okta.OktaAuthResponse) (session *okta.OktaSessi
 	session, err = okta.CreateSession(oktaDomain(), authResponse)
 
 	if err == nil {
-		cache.Write(oktaSessionCacheKey(), *session, session.ExpiresAt.Sub(time.Now()))
+		cacheOktaSession(session)
 	}
 
 	return
