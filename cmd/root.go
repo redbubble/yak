@@ -20,19 +20,19 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "yak [flags] [--list-roles | [--] <role> [<subcommand...>]]",
+	Use:   "yak [flags] [--list-roles | [--] <role> [<command...>]]",
 	Short: "A shim to do stuff with AWS credentials using Okta",
 	Long: `A shim to do stuff with AWS credentials using Okta
 
   * With --list-roles, print a list of your available AWS roles.
     Otherwise, yak will attempt to generate AWS keys for <role>.
 
-  * If <subcommand> is set, yak will attempt to execute it with the
+  * If <command> is set, yak will attempt to execute it with the
     AWS keys injected into the environment.  Otherwise, the
     credentials will conveniently be printed stdout.
 
-    Note that if you want to pass -/-- flags to your <subcommand>,
-    you'll need to put a '--' separator before the <role> so yak
+    Note that if you want to pass -/-- flags to your <command>,
+    you'll need to put a '--' separator before the <command> so yak
     knows not to interpret those arguments for itself`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
