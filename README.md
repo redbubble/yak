@@ -83,12 +83,19 @@ yak --list-roles
 
 `yak` will print a list of available roles and exit.
 
-Note that if you want to pass -/-- flags to subcommands, you'll need to put a '--' before the <role> to let `yak` know
-you're done passing flags to *it*, like this:
+Note that to pass `-/--` flags to commands you want to run, you'll need to put a `--` before the
+`<command>`, to let `yak` know you're done passing flags to *it*, like this:
 
 ```
-yak [flags] -- <role> <command --with-flags>
+yak [flags] <role> -- <command --with-flags>
 ```
+
+For example:
+
+```
+yak --cache-only nonprod -- npx cdk --app 'npx ts-node --prefer-ts-exts bin/my-stack.ts' list
+```
+
 
 #### Arguments
 
@@ -106,7 +113,7 @@ yak [flags] -- <role> <command --with-flags>
   -u, --okta-username string            Your Okta username
   -o, --output-format string            Can be set to either 'json' or 'env'. The format in which to output credential data
       --version                         Print the current version and exit
-      --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
+      --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to commands
 ```
 
 #### Environment Variables
