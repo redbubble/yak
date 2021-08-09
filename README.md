@@ -106,7 +106,7 @@ yak [flags] -- <role> <command --with-flags>
   -u, --okta-username string            Your Okta username
   -o, --output-format string            Can be set to either 'json' or 'env'. The format in which to output credential data
       --version                         Print the current version and exit
-      --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to subcommands
+      --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to commands
 ```
 
 #### Environment Variables
