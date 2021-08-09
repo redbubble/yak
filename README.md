@@ -83,11 +83,11 @@ yak --list-roles
 
 `yak` will print a list of available roles and exit.
 
-Note that if you want to pass -/-- flags to subcommands, you'll need to put a '--' before the <role> to let `yak` know
-you're done passing flags to *it*, like this:
+Note that to pass `-/--` flags to commands you want to run, you'll need to put a `--` before the
+`<command>`, to let `yak` know you're done passing flags to *it*, like this:
 
 ```
-yak [flags] -- <role> <command --with-flags>
+yak [flags] <role> -- <command --with-flags>
 ```
 
 #### Arguments
