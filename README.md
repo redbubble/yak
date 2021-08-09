@@ -90,6 +90,13 @@ Note that to pass `-/--` flags to commands you want to run, you'll need to put a
 yak [flags] <role> -- <command --with-flags>
 ```
 
+For example:
+
+```
+yak --cache-only nonprod -- npx cdk --app 'npx ts-node --prefer-ts-exts bin/my-stack.ts' list
+```
+
+
 #### Arguments
 
 ```
