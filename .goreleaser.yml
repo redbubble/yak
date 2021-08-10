@@ -19,11 +19,13 @@ nfpms:
       - deb
       - rpm
     license: MIT
-    files:
-      "static/completions/yak.zsh": "/usr/share/zsh/vendor-completions/_yak"
-      "static/completions/yak.bash": "/usr/share/bash-completion/completions/yak"
+    contents:
+      - src: "static/completions/yak.zsh"
+        dst : "/usr/share/zsh/vendor-completions/_yak"
+      - src: "static/completions/yak.bash"
+        dst: "/usr/share/bash-completion/completions/yak"
 brews:
-  - github:
+  - tap:
       owner: redbubble
       name: homebrew-yak
     commit_author:
