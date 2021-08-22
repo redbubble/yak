@@ -141,6 +141,7 @@ func init() {
 	rootCmd.PersistentFlags().String("okta-mfa-provider", "", "The Okta MFA provider name for login")
 	rootCmd.PersistentFlags().StringP("output-format", "o", "", "Can be set to either 'json' or 'env'. The format in which to output credential data")
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
+	rootCmd.PersistentFlags().BoolP("fresh-aws-session", "f", false, "Force a new AWS session even if we have one that hasn't expired")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
 	rootCmd.PersistentFlags().Bool("pinentry", false, "Use the pinentry to prompt for credentials, instead of terminal (useful for GUI applications)")
@@ -153,7 +154,7 @@ func init() {
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
 	viper.BindPFlag("output.format", rootCmd.PersistentFlags().Lookup("output-format"))
-	viper.BindPFlag("pinentry", rootCmd.PersistentFlags().Lookup("pinentry"))
+	viper.BindPFlag("cache.fresh_aws_session", rootCmd.PersistentFlags().Lookup("fresh-aws-session"))
 }
 
 func versionCmd() {

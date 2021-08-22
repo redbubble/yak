@@ -19,14 +19,20 @@ var notARoleErrorMessage = `'%s' is neither an IAM role ARN nor a configured ali
 Run 'yak --list-roles' to see which roles and aliases you can use.`
 
 func AssumeRole(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
-	creds := getAssumedRoleFromCache(role)
+
+	var creds *sts.AssumeRoleWithSAMLOutput
+
+	if !viper.GetBool("cache.fresh_aws_session") {
+		creds = getAssumedRoleFromCache(role)
+		if creds == nil {
+			log.Infof("Role %s not in cache", role)
+		}
+	}
 
 	if creds == nil {
-		log.Infof("Role %s not in cache", role)
 		if viper.GetBool("cache.cache_only") {
 			return nil, errors.New("Could not find credentials in cache and --cache-only specified. Run `yak <role>` to remedy.")
 		}
-
 		loginData, err := GetLoginDataWithTimeout()
 
 		if err != nil {
@@ -72,7 +78,8 @@ func ResolveRole(roleName string) (string, error) {
 }
 
 func assumeRoleFromAws(login saml.LoginData, desiredRole string) (*sts.AssumeRoleWithSAMLOutput, error) {
-	log.Infof("Assuming role %s from AWS", desiredRole)
+	duration := viper.GetInt64("aws.session_duration")
+	log.Infof("Assuming role %s from AWS (expiry: %d seconds)", desiredRole, duration)
 
 	role, err := login.GetLoginRole(desiredRole)
 
@@ -80,7 +87,7 @@ func assumeRoleFromAws(login saml.LoginData, desiredRole string) (*sts.AssumeRol
 		return nil, err
 	}
 
-	return aws.AssumeRole(login, role, viper.GetInt64("aws.session_duration"))
+	return aws.AssumeRole(login, role, duration)
 }
 
 func isIamRoleArn(roleName string) bool {
