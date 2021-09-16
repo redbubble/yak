@@ -144,7 +144,7 @@ func getLoginData() (saml.LoginData, error) {
 		log.Infof("Okta session not in cache or no longer valid, re-authenticating")
 
 		if viper.GetBool("cache.cache_only") {
-			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+			return saml.LoginData{}, errors.New("Could not find credentials in cache and --cache-only specified. Run `yak <role>` to remedy.")
 		}
 
 		authResponse, err = promptLogin()

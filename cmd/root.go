@@ -270,7 +270,7 @@ func Execute() {
 		} else {
 			// In this case, something went wrong, but there was either no subprocess or that subprocess didn't return
 			// an error code; we should output an  error message because it's likely nothing went to stderr.
-			fmt.Fprintf(os.Stderr, "%v\n", err)
+			fmt.Fprintf(os.Stderr, "yak: %v\n", err)
 			os.Exit(1)
 		}
 	}

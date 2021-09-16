@@ -31,7 +31,7 @@ func AssumeRole(role string) (*sts.AssumeRoleWithSAMLOutput, error) {
 
 	if creds == nil {
 		if viper.GetBool("cache.cache_only") {
-			return nil, errors.New("Could not find credentials in cache and --cache-only specified. Exiting.")
+			return nil, errors.New("Could not find credentials in cache and --cache-only specified. Run `yak <role>` to remedy.")
 		}
 		loginData, err := GetLoginDataWithTimeout()
 
