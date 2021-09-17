@@ -14,7 +14,7 @@ install:
 	go install -ldflags "-X main.version=${VERSION}-${GIT_HASH}-dev"
 
 release:
-	git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
+	-git tag -a "v${VERSION}" -m "Releasing version ${VERSION}"
 	git push --tags
 	goreleaser --rm-dist
 
