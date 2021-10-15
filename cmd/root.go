@@ -143,6 +143,7 @@ func init() {
 	rootCmd.PersistentFlags().Int64P("aws-session-duration", "d", 0, "The session duration to request from AWS (in seconds)")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
+	rootCmd.PersistentFlags().Bool("pinentry", false, "Use the pinentry to prompt for credentials, instead of terminal (useful for GUI applications)")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("okta.domain", rootCmd.PersistentFlags().Lookup("okta-domain"))
 	viper.BindPFlag("okta.aws_saml_endpoint", rootCmd.PersistentFlags().Lookup("okta-aws-saml-endpoint"))
@@ -152,6 +153,7 @@ func init() {
 	viper.BindPFlag("cache.no_cache", rootCmd.PersistentFlags().Lookup("no-cache"))
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
 	viper.BindPFlag("output.format", rootCmd.PersistentFlags().Lookup("output-format"))
+	viper.BindPFlag("pinentry", rootCmd.PersistentFlags().Lookup("pinentry"))
 }
 
 func versionCmd() {
