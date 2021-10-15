@@ -166,7 +166,7 @@ IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
 }
 
 func creditsCmd() {
-	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "Paul David"}
+	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "paul david"}
 
 	fmt.Println("Contributors:")
 
