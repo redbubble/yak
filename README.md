@@ -32,8 +32,9 @@ running:
 ```sh
 sudo apt install curl gnupg2
 # This is the Redbubble GPG key, to verify releases:
-curl https://raw.githubusercontent.com/redbubble/yak/master/static/delivery-engineers.pub.asc | sudo apt-key add -
-echo "deb http://apt.redbubble.com/ stable main" | sudo tee /etc/apt/sources.list.d/yak.list
+curl -Lq https://raw.githubusercontent.com/redbubble/yak/master/static/delivery-engineers.pub.asc | sudo gpg --no-default-keyring --import --keyring gnupg-ring:/etc/apt/trusted.gpg.d/redbubble.gpg
+sudo chmod a+r /etc/apt/trusted.gpg.d/redbubble.gpg
+echo "deb http://apt.redbubble.com/ stable main" | sudo tee /etc/apt/sources.list.d/redbubble.list
 sudo apt update
 sudo apt install yak
 ```
