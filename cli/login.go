@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gopasspw/pinentry"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -313,12 +314,10 @@ func promptMFA(factor okta.AuthResponseFactor, stateToken string) (okta.OktaAuth
 		case "push":
 			authResponse, err = okta.VerifyPush(factor.Links.VerifyLink.Href, okta.PushRequest{stateToken})
 		case "token:software:totp":
-			fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
-			passCode, _ := getLine()
+			passCode, _ := promptOrPinentry(fmt.Sprintf("Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider)), false)
 			authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
 		case "token:hardware":
-			fmt.Fprintf(os.Stderr, "Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider))
-			passCode, _ := getLine()
+			passCode, _ := promptOrPinentry(fmt.Sprintf("Okta MFA token (from %s): ", okta.TotpFactorName(factor.Provider)), false)
 			authResponse, err = okta.VerifyTotp(factor.Links.VerifyLink.Href, okta.TotpRequest{stateToken, passCode})
 		default:
 			err := errors.New("Unknown factor type selected. Exiting.")
@@ -365,8 +364,7 @@ func promptLogin() (okta.OktaAuthResponse, error) {
 				prompt = prompt + " (" + username + ")"
 			}
 
-			fmt.Fprintf(os.Stderr, "%s: ", prompt)
-			password, err = getPassword()
+			password, err = promptOrPinentry(fmt.Sprintf("%s: ", prompt), true)
 
 			if err != nil {
 				return authResponse, err
@@ -393,6 +391,41 @@ func CacheLoginRoles(roles []saml.LoginRole) {
 	}
 
 	cache.WriteDefault("aws:roles", data)
+}
+
+func promptOrPinentry(prompt string, secret bool) (string, error) {
+	// Whether to use pinentry for (GUI) password prompt, or the original way
+	if viper.GetBool("pinentry") {
+		return getPinentry(prompt, secret)
+	} else {
+		fmt.Fprintf(os.Stderr, prompt)
+		// If it's secret, don't echo the user's response.
+		if secret {
+			return getPassword()
+		} else {
+			return getLine()
+		}
+	}
+}
+
+func getPinentry(prompt string, secret bool) (string, error) {
+	p, err := pinentry.New()
+	if err != nil {
+		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
+	}
+	defer p.Close()
+
+	_ = p.Set("title", "yak")
+	_ = p.Set("desc", prompt)
+	_ = p.Set("prompt", "Input:")
+	_ = p.Set("ok", "OK")
+	pw, err := p.GetPin()
+	if err != nil {
+		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
+	}
+
+	pass := string(pw)
+	return pass, nil
 }
 
 func getPassword() (string, error) {

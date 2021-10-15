@@ -35,6 +35,8 @@ brews:
     folder: Formula
     homepage: https://github.com/redbubble/yak
     description: A tool to log in to AWS through Okta
+    dependencies:
+      - name: pinentry-mac
 
     test: |
       system "#{bin}/yak --help"

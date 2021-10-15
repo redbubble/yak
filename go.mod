@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/aws/aws-sdk-go v1.35.5
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
+	github.com/gopasspw/pinentry v0.0.0-00010101000000-000000000000
 	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/magiconair/properties v1.7.6 // indirect
@@ -24,3 +25,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 )
+
+replace github.com/gopasspw/pinentry => github.com/redbubble/pinentry v0.0.3-0.20211015012734-36081cf01f93
