@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gopasspw/pinentry"
 	"github.com/spf13/viper"
 	"github.com/twpayne/go-pinentry"
 	"golang.org/x/crypto/ssh/terminal"

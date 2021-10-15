@@ -155,6 +155,7 @@ func init() {
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
 	viper.BindPFlag("output.format", rootCmd.PersistentFlags().Lookup("output-format"))
 	viper.BindPFlag("cache.fresh_aws_session", rootCmd.PersistentFlags().Lookup("fresh-aws-session"))
+	viper.BindPFlag("pinentry", rootCmd.PersistentFlags().Lookup("pinentry"))
 }
 
 func versionCmd() {
