@@ -144,6 +144,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("fresh-aws-session", "f", false, "Force a new AWS session even if we have one that hasn't expired")
 	rootCmd.PersistentFlags().Bool("no-cache", false, "Ignore cache for this request. Mutually exclusive with --cache-only")
 	rootCmd.PersistentFlags().Bool("cache-only", false, "Only use cache, do not make external requests. Mutually exclusive with --no-cache")
+	rootCmd.PersistentFlags().Bool("pinentry", false, "Use the pinentry to prompt for credentials, instead of terminal (useful for GUI applications)")
 	viper.BindPFlag("okta.username", rootCmd.PersistentFlags().Lookup("okta-username"))
 	viper.BindPFlag("okta.domain", rootCmd.PersistentFlags().Lookup("okta-domain"))
 	viper.BindPFlag("okta.aws_saml_endpoint", rootCmd.PersistentFlags().Lookup("okta-aws-saml-endpoint"))
@@ -154,6 +155,7 @@ func init() {
 	viper.BindPFlag("cache.cache_only", rootCmd.PersistentFlags().Lookup("cache-only"))
 	viper.BindPFlag("output.format", rootCmd.PersistentFlags().Lookup("output-format"))
 	viper.BindPFlag("cache.fresh_aws_session", rootCmd.PersistentFlags().Lookup("fresh-aws-session"))
+	viper.BindPFlag("pinentry", rootCmd.PersistentFlags().Lookup("pinentry"))
 }
 
 func versionCmd() {
@@ -168,7 +170,7 @@ IFYgICBWIFkgLwogICAgICAgfHxWdlZ2Vnx8CiAgICAgICB8fCAgICAgfHwK`)
 }
 
 func creditsCmd() {
-	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "Paul David"}
+	contributors := []string{"Adam Thalhammer", "Amanda Koh", "Dave Schweisguth", "John Murphy", "Kaitlyn Mesa", "Lucas Wilson-Richter", "Michael Vigilante", "Nova Tan", "paul david"}
 
 	fmt.Println("Contributors:")
 
