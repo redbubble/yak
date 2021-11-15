@@ -54,7 +54,7 @@ that version 5.1 or newer will work correctly.
 
 #### Manually
 
-Download the [latest release](https://github.com/yak/releases/latest) for your architecture. The `yak` executable is statically linked,
+Download the [latest release](https://github.com/redbubble/yak/releases/latest) for your architecture. The `yak` executable is statically linked,
 so all you should need to do is put the executable somewhere in your `$PATH`.
 
 This method will not give you tab-completion; if you'd like that, the completions files are available in
