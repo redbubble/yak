@@ -28,7 +28,7 @@ nfpms:
 brews:
   - tap:
       owner: redbubble
-      name: homebrew-yak
+      name: homebrew-redbubble
     commit_author:
       name: Redbubble Delivery Engineering Team
       email: delivery-engineers@redbubble.com

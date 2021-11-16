@@ -17,7 +17,7 @@ This will also help keep `yak` up-to-date when you run `brew upgrade`
 as usual.
 
 ```sh
-brew tap redbubble/yak
+brew tap redbubble/redbubble
 brew install yak
 ```
 
