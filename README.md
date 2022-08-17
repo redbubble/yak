@@ -229,27 +229,6 @@ that:
 go get -u github.com/redbubble/yak
  ```
 
-### Installing dependencies
-
-You'll need the [dep](https://github.com/golang/dep) tool (if you're
-on macOS, `brew install dep`. Linux is a bit tricker; see the [dep
-README](https://github.com/golang/dep#installation) for details).
-
-Then run (inside your `$GOPATH/src/github.com/redbubble/yak` directory):
-```
-make vendor
-```
-
-This will install all your dependencies into the `vendor` directory.
-
-If you want to do releases, you'll also want the `deb-s3` package.
-You'll also want `gnupg2` to be able to sign releases, but i'll leave
-installation of that up to you.
-
-```sh
-gem install deb-s3
-```
-
 ### Running locally
 
 The `make install` target will compile the application and 'install' it into your `$GOPATH`.
