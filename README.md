@@ -1,6 +1,6 @@
 # yak
 
-[![Build Status](https://travis-ci.org/redbubble/yak.svg?branch=master)](https://travis-ci.org/redbubble/yak)
+[![Build Status](https://github.com/redbubble/yak/actions/workflows/ci.yml/badge.svg)](https://github.com/redbubble/yak/actions)
 
 A tool to generate access keys for AWS using Okta. If you want a backronym, try 'Your AWS Kredentials'.
 
@@ -113,6 +113,7 @@ yak --cache-only nonprod -- npx cdk --app 'npx ts-node --prefer-ts-exts bin/my-s
       --okta-mfa-type string            The Okta MFA type for login
   -u, --okta-username string            Your Okta username
   -o, --output-format string            Can be set to either 'json' or 'env'. The format in which to output credential data
+      --pinentry                        Use the pinentry to prompt for credentials, instead of terminal (useful for GUI applications)
       --version                         Print the current version and exit
       --                                Terminator for -/-- flags. Necessary if you want to pass -/-- flags to commands
 ```
@@ -195,6 +196,11 @@ session_duration = 3600
 [login]
 # Optional. Duration in seconds from the start of the login process until it times out.
 timeout = 180
+```
+
+```toml
+# Optional. Prompt for password and MFA token using pinentry.  Useful for when using GUI tools like Lens.
+pinentry = true
 ```
 
 #### Aliases
