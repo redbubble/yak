@@ -4,9 +4,13 @@ builds:
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
       - arm64
+  - ignore:
+    - goos: windows
+      goarch: arm64
 archives:
   - format: tar.gz
     files:
