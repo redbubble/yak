@@ -1,6 +1,6 @@
 # yak
 
-[![Build Status](https://travis-ci.org/redbubble/yak.svg?branch=master)](https://travis-ci.org/redbubble/yak)
+[![Build Status](https://github.com/redbubble/yak/actions/workflows/ci.yml/badge.svg)](https://github.com/redbubble/yak/actions)
 
 A tool to generate access keys for AWS using Okta. If you want a backronym, try 'Your AWS Kredentials'.
 
