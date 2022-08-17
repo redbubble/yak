@@ -258,6 +258,12 @@ You can then run `$GOPATH/bin/yak`.
 
 ### Running tests
 
+Install `gotestsum`
+
+```
+go install gotest.tools/gotestsum
+```
+
 To run all the tests in the project through [go-passe](https://github.com/redbubble/go-passe), run:
 ```
 make test
