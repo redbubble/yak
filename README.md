@@ -220,6 +220,15 @@ yak prod [<command>]
 
 ## Development
 
+### Go Get
+
+To hack on `yak`, you'll want to get a copy of the source.  To do
+that:
+
+```
+go get -u github.com/redbubble/yak
+ ```
+
 ### Installing dependencies
 
 Run (inside your `yak` directory):
@@ -236,15 +245,6 @@ installation of that up to you.
 ```sh
 gem install deb-s3
 ```
-
-### Go Get
-
-To hack on `yak`, you'll want to get a copy of the source.  To do
-that:
-
-```
-go get -u github.com/redbubble/yak
- ```
 
 ### Running locally
 
