@@ -415,6 +415,7 @@ func getPinentry(prompt string, secret bool) (string, error) {
 
 	// Rather that rely on darwin users having a gpgagent conf just look for pinentry-mac.
 	// Simplifies config for the most common use case.
+	// Users that are specifically asking for pinentry to be used almost certainly need the GUI version, whereas the default is the CLI version.  This is for e.g., GUI database clients that call yak in the background where stdout and stdin are unavailable.
 	if runtime.GOOS == "darwin" {
 		pinentry_absolute, err := exec.LookPath("pinentry-mac")
 		if err != nil {
