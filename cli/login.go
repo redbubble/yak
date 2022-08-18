@@ -5,13 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
-	"github.com/gopasspw/pinentry"
 	"github.com/spf13/viper"
+	"github.com/twpayne/go-pinentry"
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/redbubble/yak/cache"
@@ -409,19 +411,32 @@ func promptOrPinentry(prompt string, secret bool) (string, error) {
 }
 
 func getPinentry(prompt string, secret bool) (string, error) {
-	p, err := pinentry.New()
+	clientOptions := pinentry.WithBinaryNameFromGnuPGAgentConf()
+
+	// Rather that rely on darwin users having a gpgagent conf just look for pinentry-mac.
+	// Simplifies config for the most common use case.
+	// Users that are specifically asking for pinentry to be used almost certainly need the GUI version, whereas the default is the CLI version.  This is for e.g., GUI database clients that call yak in the background where stdout and stdin are unavailable.
+	if runtime.GOOS == "darwin" {
+		pinentry_absolute, err := exec.LookPath("pinentry-mac")
+		if err != nil {
+			return "", err
+		}
+		clientOptions = pinentry.WithBinaryName(pinentry_absolute)
+	}
+
+	p, err := pinentry.NewClient(clientOptions,
+		pinentry.WithDesc(prompt),
+		pinentry.WithPrompt(""),
+		pinentry.WithTitle("Yak"))
+
 	if err != nil {
-		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
+		return "", fmt.Errorf("pinentry error: %w", err)
 	}
 	defer p.Close()
 
-	_ = p.Set("title", "yak")
-	_ = p.Set("desc", prompt)
-	_ = p.Set("prompt", "Input:")
-	_ = p.Set("ok", "OK")
-	pw, err := p.GetPin()
+	pw, _, err := p.GetPIN()
 	if err != nil {
-		return "", fmt.Errorf("pinentry (%s) error: %w", pinentry.GetBinary(), err)
+		return "", fmt.Errorf("pinentry error: %w", err)
 	}
 
 	pass := string(pw)
