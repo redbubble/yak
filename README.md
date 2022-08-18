@@ -8,7 +8,7 @@ A tool to generate access keys for AWS using Okta. If you want a backronym, try 
 
 ### Installation
 
-We produce builds of `yak` for OSX and Linux. Windows is not currently supported.
+We produce builds of `yak` for macOS and Linux.
 
 #### macOS with Homebrew
 
@@ -220,23 +220,13 @@ yak prod [<command>]
 
 ## Development
 
-### Go Get
-
-To hack on `yak`, you'll want to get a copy of the source.  To do
-that:
+To hack on `yak`, you'll want to get a copy of the source.  Then:
 
 ```
-go get -u github.com/redbubble/yak
- ```
-
-### Installing dependencies
-
-Run (inside your `yak` directory):
-```
-make vendor
+go build
 ```
 
-This will install all your dependencies into the `vendor` directory.
+### Releasing changes
 
 If you want to do releases, you'll also want the `deb-s3` package.
 You'll also want `gnupg2` to be able to sign releases, but i'll leave
@@ -254,18 +244,15 @@ You can then run `$GOPATH/bin/yak`.
 
 ### Running tests
 
-Install `gotestsum`
+Install `gotestsum`, then run tests.
 
 ```
 go install gotest.tools/gotestsum
-```
-
-To run all the tests in the project through [go-passe](https://github.com/redbubble/go-passe), run:
-```
 make test
 ```
 
-To run them without go-passe, or to run the tests for any individual package, you can run:
+To run tests without gotestsum, or to run the tests for any individual package, you can run:
+
 ```
 go test <package-directory>
 ```
