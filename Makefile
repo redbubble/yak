@@ -20,6 +20,3 @@ release:
 
 release-deb:
 	deb-s3 upload --s3-region=ap-southeast-2 --bucket=apt.redbubble.com --sign=${DELIVERY_ENGINEERING_GPG_KEY} bin/yak_${VERSION}_linux_amd64.deb
-
-vendor:
-	go mod vendor
