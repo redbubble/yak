@@ -244,13 +244,13 @@ You can then run `$GOPATH/bin/yak`.
 
 ### Running tests
 
-Install `gotestsum`, then run tests.
+Just run:
 
 ```
-go install gotest.tools/gotestsum
 make test
 ```
 
+If `gotestsum` isn't available we'll try and install it.
 To run tests without gotestsum, or to run the tests for any individual package, you can run:
 
 ```
