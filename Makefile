@@ -1,10 +1,11 @@
-VERSION ?= 1.5.11
+VERSION ?= 1.6.0
 GIT_HASH = $(shell git rev-parse --short HEAD)
 DELIVERY_ENGINEERING_GPG_KEY = 0x877817E441F4F9B0
 
 .PHONY: test install
 
 test:
+	command -v gotestsum || go install gotest.tools/gotestsum@latest
 	gotestsum
 
 fmt:
