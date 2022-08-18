@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -409,7 +410,13 @@ func promptOrPinentry(prompt string, secret bool) (string, error) {
 }
 
 func getPinentry(prompt string, secret bool) (string, error) {
-	p, err := pinentry.NewClient(pinentry.WithBinaryNameFromGnuPGAgentConf(),
+	clientOptions := pinentry.WithBinaryNameFromGnuPGAgentConf()
+	// TODO talk about why
+	if (runtime.GOOS == "darwin") {
+		clientOptions = pinentry.WithBinaryName("pinentry-mac")
+	}
+
+	p, err := pinentry.NewClient(clientOptions,
 		pinentry.WithDesc(prompt),
 		pinentry.WithPrompt(""),
 		pinentry.WithTitle("Yak"))
