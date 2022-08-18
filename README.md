@@ -220,6 +220,23 @@ yak prod [<command>]
 
 ## Development
 
+### Installing dependencies
+
+Run (inside your `yak` directory):
+```
+make vendor
+```
+
+This will install all your dependencies into the `vendor` directory.
+
+If you want to do releases, you'll also want the `deb-s3` package.
+You'll also want `gnupg2` to be able to sign releases, but i'll leave
+installation of that up to you.
+
+```sh
+gem install deb-s3
+```
+
 ### Go Get
 
 To hack on `yak`, you'll want to get a copy of the source.  To do
