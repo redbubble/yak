@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -410,20 +411,22 @@ func promptOrPinentry(prompt string, secret bool) (string, error) {
 }
 
 func getPinentry(prompt string, secret bool) (string, error) {
-	var p *pinentry.Client
-	var err error
+	clientOptions := pinentry.WithBinaryNameFromGnuPGAgentConf()
 
+	// Rather that rely on darwin users having a gpgagent conf just look for pinentry-mac.
+	// Simplifies config for the most common use case.
 	if runtime.GOOS == "darwin" {
-		p, err = pinentry.NewClient(pinentry.WithBinaryName("pinentry-mac"),
-			pinentry.WithDesc(prompt),
-			pinentry.WithPrompt(""),
-			pinentry.WithTitle("Yak"))
-	} else {
-		p, err = pinentry.NewClient(pinentry.WithBinaryNameFromGnuPGAgentConf(),
-			pinentry.WithDesc(prompt),
-			pinentry.WithPrompt(""),
-			pinentry.WithTitle("Yak"))
+		pinentry_absolute, err := exec.LookPath("pinentry-mac")
+		if err != nil {
+			return "", err
+		}
+		clientOptions = pinentry.WithBinaryName(pinentry_absolute)
 	}
+
+	p, err := pinentry.NewClient(clientOptions,
+		pinentry.WithDesc(prompt),
+		pinentry.WithPrompt(""),
+		pinentry.WithTitle("Yak"))
 
 	if err != nil {
 		return "", fmt.Errorf("pinentry error: %w", err)
