@@ -310,7 +310,11 @@ func AwsSamlLogin(oktaHref string, samlHref string, oktasession OktaSession) (st
 
 func makeRequest(url string, body io.Reader) ([]byte, int, error) {
 	resp, err := http.Post(url, "application/json", body)
-	log.WithField("url", url).WithField("statusCode", resp.StatusCode).Debug("okta.go: Okta request")
+	if resp != nil {
+		log.WithField("url", url).WithField("statusCode", resp.StatusCode).Debug("okta.go: Okta request")
+	} else {
+		log.WithField("url", url).Debug("okta.go: Okta returned a nil response")
+	}
 
 	if err != nil {
 		return []byte{}, YAK_STATUS_NET_ERROR, err
